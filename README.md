@@ -40,7 +40,7 @@ apoi
   npm run dev. 
 Așteaptă mesajul Ready on http://localhost:3000.
 
-Pasul 7 — Deschide aplicația: http://localhost:3000 în browser ✅
+Pasul 7 — Deschide aplicația: http://localhost:3000 în browser 
 
 Oprire: Pentru Docker rulează docker compose -f docker-compose-dev.yml down. 
 Pentru Spring Boot click ⏹ în IntelliJ. 
