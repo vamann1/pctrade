@@ -1,0 +1,10 @@
+package com.example.demo.chat.repository;
+
+import com.example.demo.chat.entity.Message;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+
+public interface MessageRepository extends JpaRepository<Message, Long> {
+    List<Message> findBySenderIdAndReceiverIdOrderByCreatedAtAsc(Long senderId, Long receiverId);
+    List<Message> findByListingIdOrderByCreatedAtAsc(Long listingId);
+}

@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/pctrade
+    username: pctrade_user
+    password: pctrade_pass
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+minio:
+  endpoint: http://localhost:9000
+  access-key: minioadmin
+  secret-key: minioadmin
+  bucket: pctrade-images
+
+stripe:
+  secret-key: sk_test_51T8UlZGpNEsWiovCHjJVL0dJDxQAcINe3BtxPv6uoMU4J1FzmRYlT4WBn0efJ57FyzxAt1r3Nyudrjw0lnxYPfET00tI706ddt
+  webhook-secret: whsec_04c9558453860dcad162c6a796107b0846d80200a92fb25774d0742c82c0978a
+
+groq:
+  api-key: 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
+  model: llama3-70b-8192
