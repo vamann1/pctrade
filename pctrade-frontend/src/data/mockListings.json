@@ -1,0 +1,14 @@
+[
+  { "_id": "1", "title": "Intel Core i7-12700K", "category": "CPU", "price": 850, "condition": "Excellent", "seller": { "username": "george_pc" } },
+  { "_id": "2", "title": "NVIDIA RTX 3070 Ti 8GB GDDR6X", "category": "GPU", "price": 1650, "condition": "Like New", "seller": { "username": "mihai_tech" } },
+  { "_id": "3", "title": "Corsair Vengeance 32GB DDR4 3200MHz", "category": "RAM", "price": 280, "condition": "New", "seller": { "username": "alex_vinde" } },
+  { "_id": "4", "title": "Samsung 970 EVO Plus 1TB NVMe M.2", "category": "SSD", "price": 320, "condition": "Good", "seller": { "username": "dan_sells" } },
+  { "_id": "5", "title": "ASUS ROG Strix B550-F Gaming WiFi", "category": "Motherboard", "price": 600, "condition": "Like New", "seller": { "username": "ionut_ro" } },
+  { "_id": "6", "title": "Seasonic Focus GX 750W 80+ Gold", "category": "PSU", "price": 350, "condition": "New", "seller": { "username": "george_pc" } },
+  { "_id": "7", "title": "AMD Ryzen 5 5600X", "category": "CPU", "price": 620, "condition": "Good", "seller": { "username": "radu_tech" } },
+  { "_id": "8", "title": "WD Blue 2TB HDD 7200RPM", "category": "HDD", "price": 180, "condition": "Acceptable", "seller": { "username": "mihai_tech" } },
+  { "_id": "9", "title": "LG 27GP850-B 27inch 165Hz IPS", "category": "Monitor", "price": 900, "condition": "Like New", "seller": { "username": "dan_sells" } },
+  { "_id": "10", "title": "ASUS ROG Zephyrus G14 RTX 4060", "category": "Laptop", "price": 4200, "condition": "Excellent", "seller": { "username": "ionut_ro" } },
+  { "_id": "11", "title": "PC Gaming Intel i5-12400F + RTX 3060", "category": "Full PC", "price": 2800, "condition": "Good", "seller": { "username": "alex_vinde" } },
+  { "_id": "12", "title": "Logitech G Pro X Superlight", "category": "Peripheral", "price": 320, "condition": "For Parts", "seller": { "username": "george_pc" } }
+]
