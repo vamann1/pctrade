@@ -1,20 +1,21 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { getListings } from '../api/listings';
+import mockListings from '../data/mockListings.json';
 import {
-  Box, Container, Typography, InputBase,
+  Box, Container, Typography,
   Button, Divider
 } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import PaymentsIcon from '@mui/icons-material/Payments';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import mockListings from '../data/mockListings.json';
 import ListingCard from '../components/ListingCard';
 
 /* Import Iconite Google */
 import MemoryIcon from '@mui/icons-material/Memory';
+import SearchIcon from '@mui/icons-material/Search';
 import VideogameAssetIcon from '@mui/icons-material/VideogameAsset';
 import StorageIcon from '@mui/icons-material/Storage';
 import SdCardIcon from '@mui/icons-material/SdCard';
@@ -54,25 +55,25 @@ const STATS = [
 
 const HOW_IT_WORKS = [
   {
-    icon: <SearchIcon sx={{ fontSize: 32, color: '#00bcd4' }} />,
+    icon: <SearchIcon sx={{ fontSize: 32, color: '#5856d6' }} />,
     step: '01',
     title: 'Găsește',
     description: 'Caută componenta dorită din mii de anunțuri verificate.',
   },
   {
-    icon: <PaymentsIcon sx={{ fontSize: 32, color: '#00bcd4' }} />,
+    icon: <PaymentsIcon sx={{ fontSize: 32, color: '#5856d6' }} />,
     step: '02',
     title: 'Plătește sigur',
     description: 'Suma este blocată în escrow până confirmi funcționarea.',
   },
   {
-    icon: <LocalShippingIcon sx={{ fontSize: 32, color: '#00bcd4' }} />,
+    icon: <LocalShippingIcon sx={{ fontSize: 32, color: '#5856d6' }} />,
     step: '03',
-    title: 'Primește',
+    title: 'Primești',
     description: 'Produsul ajunge la tine cu tracking în timp real.',
   },
   {
-    icon: <CheckCircleIcon sx={{ fontSize: 32, color: '#00bcd4' }} />,
+    icon: <CheckCircleIcon sx={{ fontSize: 32, color: '#5856d6' }} />,
     step: '04',
     title: 'Confirmă',
     description: 'Testează și confirmă. Banii sunt eliberați vânzătorului.',
@@ -81,19 +82,20 @@ const HOW_IT_WORKS = [
 
 const Home = () => {
   const navigate = useNavigate();
-  const [searchValue, setSearchValue] = useState('');
+  const [recentListings, setRecentListings] = useState([]);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchValue.trim()) {
-      navigate(`/browse?search=${encodeURIComponent(searchValue.trim())}`);
-    } else {
-      navigate('/browse');
-    }
-  };
-
-  // Primele 6 produse sortate dupa data (mock = ordinea din JSON)
-  const recentListings = [...mockListings].slice(0, 6);
+  useEffect(() => {
+    const fetchRecent = async () => {
+      try {
+        const data = await getListings();
+        setRecentListings([...data].reverse().slice(0, 6));
+      } catch {
+        console.warn('Backend indisponibil, folosim date mock.');
+        setRecentListings([...mockListings].slice(0, 6));
+      }
+    };
+    fetchRecent();
+  }, []);
 
   return (
     <Box sx={{ backgroundColor: '#080d1a', minHeight: '100vh' }}>
@@ -102,13 +104,12 @@ const Home = () => {
           SECTIUNEA 1 — Hero
       ══════════════════════════════════════ */}
       <Box sx={{
-        background: 'linear-gradient(135deg, #0a1628 0%, #0d1f3c 40%, #080d1a 100%)',
-        borderBottom: '1px solid #1e2a3a',
+        background: 'linear-gradient(135deg, #ffffff 0%, #f2f2f7 100%)',
+        borderBottom: '1px solid #e5e5ea',
         py: { xs: 8, md: 12 },
         textAlign: 'center',
         position: 'relative',
         overflow: 'hidden',
-        // Efect de lumina ambientala in spate
         '&::before': {
           content: '""',
           position: 'absolute',
@@ -117,7 +118,7 @@ const Home = () => {
           transform: 'translateX(-50%)',
           width: '60%',
           height: '60%',
-          background: 'radial-gradient(ellipse, #00bcd420 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse, #5856d615 0%, transparent 70%)',
           pointerEvents: 'none',
         },
       }}>
@@ -128,39 +129,39 @@ const Home = () => {
             display: 'inline-flex',
             alignItems: 'center',
             gap: 0.8,
-            backgroundColor: '#00bcd422',
-            border: '1px solid #00bcd444',
+            backgroundColor: '#5856d611',
+            border: '1px solid #5856d633',
             borderRadius: 10,
             px: 2,
             py: 0.6,
             mb: 3,
           }}>
-            <VerifiedIcon sx={{ fontSize: 14, color: '#00bcd4' }} />
-            <Typography variant="caption" sx={{ color: '#00bcd4', fontWeight: 'bold', letterSpacing: 1 }}>
-              TRANZACȚII PROTEJATE CU ESCOW
+            <VerifiedIcon sx={{ fontSize: 14, color: '#5856d6' }} />
+            <Typography variant="caption" sx={{ color: '#5856d6', fontWeight: 'bold', letterSpacing: 1 }}>
+              VERIFICAT · SIGUR · CU SUPORT AI
             </Typography>
           </Box>
 
-          {/* Titlu principal */}
+          {/* Titlu */}
           <Typography
             variant="h2"
             fontWeight="black"
             sx={{
-              color: 'white',
+              color: '#1c1c1e',
               fontSize: { xs: '2.2rem', md: '3.5rem' },
               lineHeight: 1.15,
               mb: 2,
             }}
           >
             Cumpără & Vinde<br />
-            <span style={{ color: '#00bcd4' }}>Componente PC</span>
+            <span style={{ color: '#5856d6' }}>Componente PC</span>
           </Typography>
 
           {/* Subtitlu */}
           <Typography
             variant="h6"
             sx={{
-              color: '#888',
+              color: '#6b6b6b',
               fontWeight: 'normal',
               fontSize: { xs: '1rem', md: '1.15rem' },
               mb: 5,
@@ -168,51 +169,9 @@ const Home = () => {
               mx: 'auto',
             }}
           >
-            Marketplace-ul <strong style={{ color: '#aaa' }}>#1 din România</strong> pentru hardware second-hand.
+            Marketplace-ul <strong style={{ color: '#1c1c1e' }}>#1 din România</strong> pentru hardware second-hand.
             Verificat, sigur, cu suport AI.
           </Typography>
-
-          {/* Searchbar hero */}
-          <Box
-            component="form"
-            onSubmit={handleSearch}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              backgroundColor: '#0f1525',
-              border: '1px solid #1e2a3a',
-              borderRadius: 3,
-              px: 2.5,
-              py: 1,
-              maxWidth: 580,
-              mx: 'auto',
-              mb: 6,
-              '&:focus-within': { borderColor: '#00bcd4' },
-              transition: 'border-color 0.2s',
-            }}
-          >
-            <SearchIcon sx={{ color: '#555', fontSize: 22, mr: 1.5 }} />
-            <InputBase
-              placeholder="Ce căutați? ex: RTX 5060, Ryzen 7..."
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              sx={{ color: 'white', flex: 1, fontSize: 15 }}
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              sx={{
-                backgroundColor: '#00bcd4',
-                textTransform: 'none',
-                fontWeight: 'bold',
-                borderRadius: 2,
-                px: 3,
-                '&:hover': { backgroundColor: '#0097a7' },
-              }}
-            >
-              Caută
-            </Button>
-          </Box>
 
           {/* Statistici */}
           <Box sx={{
@@ -223,10 +182,10 @@ const Home = () => {
           }}>
             {STATS.map((stat, i) => (
               <Box key={i} sx={{ textAlign: 'center' }}>
-                <Typography variant="h5" fontWeight="bold" sx={{ color: '#00bcd4' }}>
+                <Typography variant="h5" fontWeight="bold" sx={{ color: '#5856d6' }}>
                   {stat.value}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#666' }}>
+                <Typography variant="caption" sx={{ color: '#6b6b6b' }}>
                   {stat.label}
                 </Typography>
               </Box>
@@ -241,12 +200,9 @@ const Home = () => {
       ══════════════════════════════════════ */}
       <Box sx={{
         py: 8,
-        background: 'linear-gradient(180deg, #080d1a 0%, #0a1220 50%, #080d1a 100%)',
-        borderTop: '1px solid #1e2a3a',
-        borderBottom: '1px solid #1e2a3a',
+        backgroundColor: '#f2f2f7',
         position: 'relative',
         overflow: 'hidden',
-        // Lumina ambientala stanga
         '&::before': {
           content: '""',
           position: 'absolute',
@@ -254,18 +210,7 @@ const Home = () => {
           left: '-10%',
           width: '40%',
           height: '40%',
-          background: 'radial-gradient(ellipse, #00bcd40a 0%, transparent 70%)',
-          pointerEvents: 'none',
-        },
-        // Lumina ambientala dreapta
-        '&::after': {
-          content: '""',
-          position: 'absolute',
-          bottom: '10%',
-          right: '-10%',
-          width: '40%',
-          height: '40%',
-          background: 'radial-gradient(ellipse, #0d47a10a 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse, #5856d608 0%, transparent 70%)',
           pointerEvents: 'none',
         },
       }}>
@@ -273,13 +218,13 @@ const Home = () => {
 
           {/* Categorii */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h5" fontWeight="bold" color="white">
+            <Typography variant="h5" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
               Categorii
             </Typography>
             <Button
               endIcon={<ArrowForwardIcon />}
               onClick={() => navigate('/browse')}
-              sx={{ color: '#00bcd4', textTransform: 'none' }}
+              sx={{ color: '#5856d6', textTransform: 'none' }}
             >
               Vezi toate
             </Button>
@@ -296,9 +241,9 @@ const Home = () => {
                 key={cat.label}
                 onClick={() => navigate(`/browse?category=${encodeURIComponent(cat.label)}`)}
                 sx={{
-                  backgroundColor: '#0f1525',
-                  border: '1px solid #1e2a3a',
-                  borderRadius: 2,
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e5e5ea',
+                  borderRadius: 3,
                   p: 2,
                   display: 'flex',
                   flexDirection: 'column',
@@ -307,33 +252,33 @@ const Home = () => {
                   cursor: 'pointer',
                   transition: 'all 0.2s',
                   '&:hover': {
-                    borderColor: '#00bcd4',
-                    backgroundColor: '#00bcd411',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
                     transform: 'translateY(-2px)',
+                    borderColor: '#5856d633',
                   },
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {cat.icon}
                 </Box>
-                <Typography variant="caption" sx={{ color: '#aaa', fontWeight: 'bold', textAlign: 'center' }}>
+                <Typography variant="caption" sx={{ color: '#1c1c1e', fontWeight: 'bold', textAlign: 'center' }}>
                   {cat.label}
                 </Typography>
               </Box>
             ))}
           </Box>
 
-          <Divider sx={{ borderColor: '#1e2a3a', mb: 8 }} />
+          <Divider sx={{ borderColor: '#e5e5ea', mb: 8 }} />
 
           {/* Adaugate recent */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h5" fontWeight="bold" color="white">
+            <Typography variant="h5" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
               Adăugate recent
             </Typography>
             <Button
               endIcon={<ArrowForwardIcon />}
               onClick={() => navigate('/browse')}
-              sx={{ color: '#00bcd4', textTransform: 'none' }}
+              sx={{ color: '#5856d6', textTransform: 'none' }}
             >
               Vezi toate
             </Button>
@@ -345,7 +290,7 @@ const Home = () => {
             gap: 2,
           }}>
             {recentListings.map((listing) => (
-              <Box key={listing._id} sx={{ display: 'flex' }}>
+              <Box key={listing._id || listing.id} sx={{ display: 'flex' }}>
                 <ListingCard listing={listing} />
               </Box>
             ))}
@@ -358,12 +303,11 @@ const Home = () => {
           SECTIUNEA 3 — Cum functioneaza
       ══════════════════════════════════════ */}
       <Box sx={{
-        borderTop: '1px solid #1e2a3a',
-        background: 'linear-gradient(135deg, #0a0f1e 0%, #0d1628 50%, #0a0f1e 100%)',
+        backgroundColor: '#ffffff',
+        borderTop: '1px solid #e5e5ea',
         py: 10,
         position: 'relative',
         overflow: 'hidden',
-        // Lumina ambientala centru-jos
         '&::after': {
           content: '""',
           position: 'absolute',
@@ -372,17 +316,17 @@ const Home = () => {
           transform: 'translateX(-50%)',
           width: '50%',
           height: '50%',
-          background: 'radial-gradient(ellipse, #00bcd415 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse, #5856d608 0%, transparent 70%)',
           pointerEvents: 'none',
         },
       }}>
         <Container maxWidth="lg">
 
           <Box sx={{ textAlign: 'center', mb: 7 }}>
-            <Typography variant="h4" fontWeight="bold" color="white" mb={1}>
+            <Typography variant="h4" fontWeight="bold" sx={{ color: '#1c1c1e' }} mb={1}>
               Cum funcționează
             </Typography>
-            <Typography variant="body1" sx={{ color: '#888' }}>
+            <Typography variant="body1" sx={{ color: '#6b6b6b' }}>
               Simplu, sigur și transparent — de la căutare până la livrare.
             </Typography>
           </Box>
@@ -395,7 +339,8 @@ const Home = () => {
           }}>
             {HOW_IT_WORKS.map((step, i) => (
               <Box key={i} sx={{ position: 'relative' }}>
-                {/* Linie de conectare intre pasi */}
+
+                {/* Linie de conectare */}
                 {i < HOW_IT_WORKS.length - 1 && (
                   <Box sx={{
                     position: 'absolute',
@@ -403,30 +348,34 @@ const Home = () => {
                     right: -16,
                     width: 32,
                     height: 1,
-                    backgroundColor: '#1e2a3a',
+                    backgroundColor: '#e5e5ea',
                     zIndex: 0,
                   }} />
                 )}
 
                 <Box sx={{
-                  backgroundColor: '#0f1525',
-                  border: '1px solid #1e2a3a',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e5e5ea',
                   borderRadius: 3,
                   p: 3,
                   height: '100%',
                   position: 'relative',
                   zIndex: 1,
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+                    transform: 'translateY(-2px)',
+                    borderColor: '#5856d633',
+                  },
                 }}>
                   {/* Numar pas */}
-                  <Typography
-                    sx={{
-                      fontSize: 11,
-                      fontWeight: 'bold',
-                      color: '#00bcd4',
-                      letterSpacing: 2,
-                      mb: 1.5,
-                    }}
-                  >
+                  <Typography sx={{
+                    fontSize: 11,
+                    fontWeight: 'bold',
+                    color: '#5856d6',
+                    letterSpacing: 2,
+                    mb: 1.5,
+                  }}>
                     {step.step}
                   </Typography>
 
@@ -434,12 +383,12 @@ const Home = () => {
                   <Box sx={{ mb: 2 }}>{step.icon}</Box>
 
                   {/* Titlu */}
-                  <Typography variant="subtitle1" fontWeight="bold" color="white" mb={1}>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#1c1c1e' }} mb={1}>
                     {step.title}
                   </Typography>
 
                   {/* Descriere */}
-                  <Typography variant="body2" sx={{ color: '#888', lineHeight: 1.6 }}>
+                  <Typography variant="body2" sx={{ color: '#6b6b6b', lineHeight: 1.6 }}>
                     {step.description}
                   </Typography>
                 </Box>

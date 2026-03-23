@@ -1,9 +1,13 @@
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import {
-  Card, CardMedia, CardContent, CardActions,
+  Card, CardContent, CardActions,
   Typography, Button, Chip, Box
 } from '@mui/material';
 import ComputerIcon from '@mui/icons-material/Computer';
+import { getListingImages } from '../api/listings';
+
+const MINIO_URL = 'http://localhost:9000/pctrade-images';
 
 const categoryColors = {
   CPU: '#f44336',
@@ -25,18 +29,36 @@ const categoryColors = {
 const ListingCard = ({ listing }) => {
   const navigate = useNavigate();
   const chipColor = categoryColors[listing.category] || '#9e9e9e';
+  const [imageUrl, setImageUrl] = useState(null);
+
+  useEffect(() => {
+    const fetchImage = async () => {
+      try {
+        const id = listing._id || listing.id;
+        // Doar daca e un ID numeric (produs real din backend)
+        if (!id || isNaN(id)) return;
+        const imgs = await getListingImages(id);
+        if (imgs.length > 0) {
+          setImageUrl(`${MINIO_URL}/${imgs[0].imageUrl}`);
+        }
+      } catch {
+        // Nicio imagine disponibila
+      }
+    };
+    fetchImage();
+  }, [listing]);
 
   return (
     <Card
       sx={{
-        backgroundColor: '#0f1525',
-        border: '1px solid #1e2a3a',
-        borderRadius: 2,
+        backgroundColor: '#ffffff',
+        border: '1px solid #e5e5ea',
+        borderRadius: 3,
         cursor: 'pointer',
-        transition: 'transform 0.2s, border-color 0.2s',
+        transition: 'all 0.2s',
         '&:hover': {
-          transform: 'translateY(-4px)',
-          borderColor: '#00bcd4',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+          transform: 'translateY(-2px)',
         },
         display: 'flex',
         flexDirection: 'column',
@@ -44,30 +66,30 @@ const ListingCard = ({ listing }) => {
         minWidth: 0,
         overflow: 'hidden',
       }}
-      onClick={() => navigate(`/listing/${listing._id}`)}
+      onClick={() => navigate(`/listing/${listing._id || listing.id}`)}
     >
-      {/* Imagine — inaltime fixa */}
-      {listing.imageUrl ? (
-        <CardMedia
-          component="img"
-          image={listing.imageUrl}
-          alt={listing.title}
-          sx={{ height: 180, objectFit: 'contain', backgroundColor: '#080d1a', p: 1 }}
-        />
-      ) : (
-        <Box sx={{
-          height: 180,
-          flexShrink: 0,
-          backgroundColor: '#080d1a',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <ComputerIcon sx={{ fontSize: 64, color: '#1e2a3a' }} />
-        </Box>
-      )}
+      {/* Imagine */}
+      <Box sx={{
+        height: 180,
+        flexShrink: 0,
+        backgroundColor: '#f2f2f7',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+      }}>
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={listing.title}
+            style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 8 }}
+          />
+        ) : (
+          <ComputerIcon sx={{ fontSize: 64, color: '#c7c7cc' }} />
+        )}
+      </Box>
 
-      {/* Detalii — inaltime fixa */}
+      {/* Detalii */}
       <Box sx={{
         height: 130,
         flexShrink: 0,
@@ -76,24 +98,24 @@ const ListingCard = ({ listing }) => {
         justifyContent: 'space-between',
         p: 2,
       }}>
-        {/* Sus: chip + titlu */}
         <Box>
           <Chip
             label={listing.category || 'Other'}
             size="small"
             sx={{
-              backgroundColor: chipColor + '22',
+              backgroundColor: chipColor + '18',
               color: chipColor,
-              border: `1px solid ${chipColor}44`,
+              border: `1px solid ${chipColor}33`,
               mb: 0.8,
               fontSize: 11,
+              fontWeight: 600,
             }}
           />
           <Typography
             variant="subtitle2"
             fontWeight="bold"
             sx={{
-              color: 'white',
+              color: '#1c1c1e',
               overflow: 'hidden',
               display: '-webkit-box',
               WebkitLineClamp: 2,
@@ -105,32 +127,29 @@ const ListingCard = ({ listing }) => {
           </Typography>
         </Box>
 
-        {/* Jos: pret + buton */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#00bcd4' }}>
+          <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#5856d6' }}>
             {listing.price} RON
           </Typography>
           <Button
             size="small"
             variant="outlined"
             sx={{
-              color: '#00bcd4',
-              borderColor: '#00bcd4',
-              textTransform: 'none',
+              color: '#5856d6',
+              borderColor: '#5856d644',
               fontSize: 12,
               py: 0.3,
-              '&:hover': { backgroundColor: '#00bcd422' },
+              '&:hover': { backgroundColor: '#5856d611', borderColor: '#5856d6' },
             }}
             onClick={(e) => {
               e.stopPropagation();
-              navigate(`/listing/${listing._id}`);
+              navigate(`/listing/${listing._id || listing.id}`);
             }}
           >
             Vezi detalii
           </Button>
         </Box>
       </Box>
-
     </Card>
   );
 };

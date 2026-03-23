@@ -73,7 +73,7 @@ const Navbar = () => {
   };
 
   return (
-    <AppBar position="sticky" sx={{ backgroundColor: '#0a0f1e' }}>
+    <AppBar position="sticky" sx={{ backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
       <Toolbar sx={{ justifyContent: 'space-between', gap: 2 }}>
 
         {/* Logo */}
@@ -82,10 +82,7 @@ const Navbar = () => {
           to="/"
           sx={{ display: 'flex', alignItems: 'center', gap: 1, textDecoration: 'none', flexShrink: 0 }}
         >
-          <ComputerIcon sx={{ color: '#00bcd4', fontSize: 30 }} />
-          <Typography variant="h6" fontWeight="bold" sx={{ color: 'white' }}>
-            PC<span style={{ color: '#00bcd4' }}>Trade</span>
-          </Typography>
+          <img src="/logo1.svg" alt="ReSpec" style={{ height: 64 }} />
         </Box>
 
         {/* Searchbar centrat */}
@@ -97,12 +94,12 @@ const Navbar = () => {
             maxWidth: 500,
             display: 'flex',
             alignItems: 'center',
-            backgroundColor: '#0f1525',
-            border: '1px solid #1e2a3a',
+            backgroundColor: '#f2f2f7',
+            border: '1px solid #1c1c1e44',
             borderRadius: 2,
             px: 2,
             py: 0.5,
-            '&:focus-within': { borderColor: '#00bcd4' },
+            '&:focus-within': { borderColor: '#5856d6' },
             transition: 'border-color 0.2s',
           }}
         >
@@ -111,7 +108,7 @@ const Navbar = () => {
             placeholder="Caută componente, periferice, laptopuri..."
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
-            sx={{ color: 'white', flex: 1, fontSize: 14 }}
+            sx={{ color: '#1c1c1e', flex: 1, fontSize: 14 }}
           />
         </Box>
 
@@ -119,12 +116,13 @@ const Navbar = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
         {user ? (
           <>
+
         {/* Buton notificari */}
         <IconButton onClick={(e) => setNotifAnchorEl(e.currentTarget)}>
           <Badge badgeContent={unreadCount} sx={{
-            '& .MuiBadge-badge': { backgroundColor: '#f44336', color: 'white', fontSize: 10 }
+            '& .MuiBadge-badge': { backgroundColor: '#5856d6', color: 'white', fontSize: 10 }
           }}>
-            <NotificationsIcon sx={{ color: 'white', fontSize: 22 }} />
+            <NotificationsIcon sx={{ color: '#1c1c1e', fontSize: 22 }} />
           </Badge>
         </IconButton>
 
@@ -134,25 +132,26 @@ const Navbar = () => {
           onClose={() => setNotifAnchorEl(null)}
           PaperProps={{
             sx: {
-              backgroundColor: '#1a1f2e',
-              color: 'white',
+              backgroundColor: '#ffffff',
+              color: '#1c1c1e',
               width: 360,
               maxHeight: 480,
-              border: '1px solid #1e2a3a',
+              border: '1px solid #e5e5ea',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.10)',
             }
           }}
           transformOrigin={{ horizontal: 'right', vertical: 'top' }}
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         >
-          {/* Header */}
-          <Box sx={{ px: 2, py: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e2a3a' }}>
-            <Typography variant="subtitle1" fontWeight="bold">
+          {/* Header notificari */}
+          <Box sx={{ px: 2, py: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e5ea' }}>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
               Notificări
               {unreadCount > 0 && (
                 <Chip
                   label={unreadCount}
                   size="small"
-                  sx={{ ml: 1, backgroundColor: '#f4433622', color: '#f44336', height: 20, fontSize: 11 }}
+                  sx={{ ml: 1, backgroundColor: '#5856d611', color: '#5856d6', height: 20, fontSize: 11 }}
                 />
               )}
             </Typography>
@@ -160,7 +159,7 @@ const Navbar = () => {
               <Typography
                 variant="caption"
                 onClick={markAllAsRead}
-                sx={{ color: '#00bcd4', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+                sx={{ color: '#5856d6', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
               >
                 Marchează toate citite
               </Typography>
@@ -170,14 +169,14 @@ const Navbar = () => {
           {/* Lista notificari */}
           {notifications.length === 0 ? (
             <Box sx={{ py: 4, textAlign: 'center' }}>
-              <Typography variant="body2" color="#555">Nicio notificare</Typography>
+              <Typography variant="body2" sx={{ color: '#6b6b6b' }}>Nicio notificare</Typography>
             </Box>
           ) : (
             notifications.map((notif) => (
               <Box
                 key={notif._id}
                 onClick={() => {
-                  markAsRead(notif._id);
+                  markAsRead(notif.id || notif._id);
                   setNotifAnchorEl(null);
                   navigate(notif.link);
                 }}
@@ -188,13 +187,12 @@ const Navbar = () => {
                   gap: 1.5,
                   alignItems: 'flex-start',
                   cursor: 'pointer',
-                  backgroundColor: notif.read ? 'transparent' : '#00bcd408',
-                  borderBottom: '1px solid #1e2a3a',
-                  '&:hover': { backgroundColor: '#ffffff08' },
+                  backgroundColor: notif.read ? 'transparent' : '#5856d608',
+                  borderBottom: '1px solid #e5e5ea',
+                  '&:hover': { backgroundColor: '#f2f2f7' },
                   transition: 'background-color 0.15s',
                 }}
               >
-                {/* Icon tip notificare */}
                 <Box sx={{
                   width: 36,
                   height: 36,
@@ -210,40 +208,45 @@ const Navbar = () => {
                 </Box>
 
                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography variant="body2" sx={{ color: notif.read ? '#888' : 'white', lineHeight: 1.4 }}>
+                  <Typography variant="body2" sx={{ color: notif.read ? '#6b6b6b' : '#1c1c1e', lineHeight: 1.4 }}>
                     {notif.message}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#555', mt: 0.3, display: 'block' }}>
+                  <Typography variant="caption" sx={{ color: '#aeaeb2', mt: 0.3, display: 'block' }}>
                     {formatNotifTime(notif.createdAt)}
                   </Typography>
                 </Box>
 
-                {/* Punct albastru daca necitita */}
                 {!notif.read && (
-                  <CircleIcon sx={{ fontSize: 8, color: '#00bcd4', flexShrink: 0, mt: 0.5 }} />
+                  <CircleIcon sx={{ fontSize: 8, color: '#5856d6', flexShrink: 0, mt: 0.5 }} />
                 )}
               </Box>
             ))
           )}
         </Menu>
 
-        {/* Buton mesaje */}
-        <IconButton onClick={() => navigate('/messages')}>
-          <Badge badgeContent={2} sx={{
-            '& .MuiBadge-badge': { backgroundColor: '#00bcd4', color: '#000', fontSize: 10 }
-          }}>
-            <ChatIcon sx={{ color: 'white', fontSize: 22 }} />
-          </Badge>
-        </IconButton>
+            {/* Buton mesaje */}
+            <IconButton onClick={() => navigate('/messages')}>
+              <Badge badgeContent={2} sx={{
+                '& .MuiBadge-badge': { backgroundColor: '#5856d6', color: 'white', fontSize: 10 }
+              }}>
+                <ChatIcon sx={{ color: '#1c1c1e', fontSize: 22 }} />
+              </Badge>
+            </IconButton>
 
+            {/* Buton Adauga Anunț*/}
             <Button
               component={RouterLink}
               to="/add-listing"
               variant="outlined"
               startIcon={<AddCircleOutlineIcon />}
-              sx={{ color: '#00bcd4', borderColor: '#00bcd4', textTransform: 'none' }}
+              sx={{
+                color: '#1c1c1e',
+                borderColor: '#1c1c1e44',
+                textTransform: 'none',
+                '&:hover': { backgroundColor: '#f2f2f7', borderColor: '#1c1c1e' },
+              }}
             >
-              Adaugă ofertă
+              Adaugă anunț
             </Button>
 
             <IconButton onClick={handleMenuOpen}>
@@ -256,47 +259,75 @@ const Navbar = () => {
               anchorEl={anchorEl}
               open={Boolean(anchorEl)}
               onClose={handleMenuClose}
-              PaperProps={{ sx: { backgroundColor: '#1a1f2e', color: 'white', minWidth: 180 } }}
+              PaperProps={{ 
+              sx: { 
+                backgroundColor: '#ffffff', 
+                color: '#1c1c1e', 
+                minWidth: 180,
+                border: '1px solid #e5e5ea',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.10)',
+              } 
+            }}
             >
-              <MenuItem disabled sx={{ opacity: 0.6, fontSize: 13 }}>
-                {user.username}
-              </MenuItem>
-              <Divider sx={{ borderColor: '#333' }} />
-              <MenuItem
-                component={RouterLink}
-                to="/profile"
-                onClick={handleMenuClose}
-                sx={{ '&:hover': { backgroundColor: '#00bcd420' } }}
-              >
-                Profilul meu
-              </MenuItem>
-              <MenuItem
-                onClick={handleLogout}
-                sx={{ color: '#f44336', '&:hover': { backgroundColor: '#f4433620' } }}
-              >
-                Deconectare
-              </MenuItem>
+            <MenuItem disabled sx={{ opacity: 0.6, fontSize: 13, color: '#6b6b6b' }}>
+              {user.username}
+            </MenuItem>
+            <Divider sx={{ borderColor: '#e5e5ea' }} />
+            <MenuItem
+              component={RouterLink}
+              to="/profile"
+              onClick={handleMenuClose}
+              sx={{ color: '#1c1c1e', '&:hover': { backgroundColor: '#f2f2f7' } }}
+            >
+              Profilul meu
+            </MenuItem>
+            <MenuItem
+              component={RouterLink}
+              to="/profile/listings"
+              onClick={handleMenuClose}
+              sx={{ color: '#1c1c1e', '&:hover': { backgroundColor: '#f2f2f7' } }}
+            >
+              Anunțurile mele
+            </MenuItem>
+            <MenuItem
+              onClick={handleLogout}
+              sx={{ color: '#ff3b30', '&:hover': { backgroundColor: '#ff3b3011' } }}
+            >
+              Deconectare
+            </MenuItem>
             </Menu>
           </>
-        ) : (
-          <>
-            <Button
-              component={RouterLink}
-              to="/login"
-              sx={{ color: 'white', textTransform: 'none' }}
-            >
-              Login
-            </Button>
-            <Button
-              component={RouterLink}
-              to="/register"
-              variant="contained"
-              sx={{ backgroundColor: '#00bcd4', textTransform: 'none', '&:hover': { backgroundColor: '#0097a7' } }}
-            >
-              Register
-            </Button>
-          </>
-        )}
+      ) : (
+        <>
+          <Button
+            component={RouterLink}
+            to="/login"
+            variant="outlined"
+            sx={{
+              color: '#1c1c1e',
+              borderColor: '#1c1c1e44',
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': { backgroundColor: '#f2f2f7', borderColor: '#1c1c1e' },
+            }}
+          >
+            Login
+          </Button>
+          <Button
+            component={RouterLink}
+            to="/register"
+            variant="contained"
+            sx={{
+              backgroundColor: '#5856d6',
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': { backgroundColor: '#4745c0' },
+            }}
+          >
+            Register
+          </Button>
+        </>
+      )}
         </Box>
       </Toolbar>
     </AppBar>

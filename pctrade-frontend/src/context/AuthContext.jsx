@@ -5,9 +5,10 @@ const AuthContext = createContext(null);
 
 // User mock pentru testing
 const MOCK_USER = {
-  _id: 'mock123',
-  username: 'george_pc',
-  email: 'george@example.com',
+  _id: 1,
+  id: 1,
+  username: 'testuser',
+  email: 'test@test.com',
 };
 
 export const AuthProvider = ({ children }) => {
@@ -16,25 +17,29 @@ export const AuthProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : null;
   });
 
-  const login = async (email, password) => {
-    try {
-      const data = await loginUser(email, password);
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      setUser(data.user);
-    } catch (err) {
-      // Daca backend-ul nu e disponibil, folosim mock
-      if (!err.response) {
-        console.warn('Backend indisponibil, login mock activat.');
-        localStorage.setItem('token', 'mock-token-123');
-        localStorage.setItem('user', JSON.stringify(MOCK_USER));
-        setUser(MOCK_USER);
-      } else {
-        // Daca backend-ul a raspuns cu eroare (ex: parola gresita), aruncam eroarea mai departe
-        throw err;
-      }
+const login = async (username, password) => {
+  try {
+    const data = await loginUser(username, password);
+    const normalizedUser = {
+      ...data.user,
+      _id: data.user._id || data.user.id,
+    };
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(normalizedUser));
+    setUser(normalizedUser);
+  } catch (err) {
+    if (!err.response) {
+      // Backend indisponibil
+      console.warn('Backend indisponibil, login mock activat.');
+      localStorage.setItem('token', 'mock-token-123');
+      localStorage.setItem('user', JSON.stringify(MOCK_USER));
+      setUser(MOCK_USER);
+    } else {
+      // Eroare reala de la backend — aruncam mai departe
+      throw err;
     }
-  };
+  }
+};
 
   const register = async (username, email, password) => {
     await registerUser(username, email, password);

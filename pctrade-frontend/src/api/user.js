@@ -5,7 +5,12 @@ export const getUserProfile = async () => {
   return response.data;
 };
 
-export const getUserListings = async () => {
-  const response = await axiosInstance.get('/users/listings');
+export const getUserListings = async (userId) => {
+  const response = await axiosInstance.get(`/listings/seller/${userId}`);
+  return response.data;
+};
+
+export const updateUser = async (userId, updates) => {
+  const response = await axiosInstance.patch(`/users/${userId}`, updates);
   return response.data;
 };

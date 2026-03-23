@@ -1,45 +1,19 @@
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getUserListings } from '../api/user';
 import {
-  Box, Container, Typography, Avatar, Button,
-  Divider, CircularProgress, Chip, Alert
+  Box, Container, Typography, Avatar, Button, Divider
 } from '@mui/material';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import ComputerIcon from '@mui/icons-material/Computer';
 import LogoutIcon from '@mui/icons-material/Logout';
-import ListingCard from '../components/ListingCard';
-
-// Date mock pentru listings utilizator
-const MOCK_USER_LISTINGS = [
-  { _id: '1', title: 'Intel Core i7-12700K', category: 'CPU', price: 850, condition: 'Folosit', seller: { username: 'george_pc' } },
-  { _id: '6', title: 'Seasonic Focus GX 750W 80+ Gold', category: 'PSU', price: 350, condition: 'Nou', seller: { username: 'george_pc' } },
-];
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import ListAltIcon from '@mui/icons-material/ListAlt';
+import PersonIcon from '@mui/icons-material/Person';
+import StarIcon from '@mui/icons-material/Star';
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 
 const Profile = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-
-  const [listings, setListings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchListings = async () => {
-      try {
-        setLoading(true);
-        const data = await getUserListings();
-        setListings(data);
-      } catch {
-        console.warn('Backend indisponibil, folosim date mock.');
-        setListings(MOCK_USER_LISTINGS);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchListings();
-  }, []);
 
   const handleLogout = () => {
     logout();
@@ -47,169 +21,232 @@ const Profile = () => {
   };
 
   return (
-    <Box sx={{ backgroundColor: '#080d1a', minHeight: '100vh', py: 6 }}>
-      <Container maxWidth="lg">
-        <Box sx={{ display: 'flex', gap: 4, alignItems: 'flex-start' }}>
+    <Box sx={{ backgroundColor: '#f9f9fb', minHeight: '100vh', py: 6 }}>
+      <Container maxWidth="md">
 
-          {/* ── COLOANA STANGA: Info user ── */}
+        {/* Card principal */}
+        <Box sx={{
+          backgroundColor: '#ffffff',
+          border: '1px solid #e5e5ea',
+          borderRadius: 3,
+          overflow: 'hidden',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+          mb: 3,
+        }}>
+          {/* Header cu avatar */}
           <Box sx={{
-            width: 280,
-            flexShrink: 0,
-            backgroundColor: '#0f1525',
-            border: '1px solid #1e2a3a',
-            borderRadius: 3,
-            p: 3,
+            background: 'linear-gradient(135deg, #5856d6 0%, #4745c0 100%)',
+            p: 4,
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
-            gap: 2,
-            position: 'sticky',
-            top: 80,
+            gap: 3,
           }}>
-
-            {/* Avatar */}
             <Avatar sx={{
-              bgcolor: '#00bcd4',
+              bgcolor: '#ffffff',
+              color: '#5856d6',
               width: 80,
               height: 80,
               fontSize: 32,
               fontWeight: 'bold',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
             }}>
               {user?.username?.[0]?.toUpperCase()}
             </Avatar>
-
-            {/* Nume + email */}
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h6" fontWeight="bold" color="white">
+            <Box>
+              <Typography variant="h5" fontWeight="bold" sx={{ color: '#ffffff' }}>
                 {user?.username}
               </Typography>
-              <Typography variant="body2" sx={{ color: '#888' }}>
+              <Typography variant="body2" sx={{ color: '#ffffff99' }}>
                 {user?.email}
               </Typography>
             </Box>
-
-            {/* Stats */}
-            <Box sx={{
-              width: '100%',
-              backgroundColor: '#080d1a',
-              borderRadius: 2,
-              p: 2,
-              display: 'flex',
-              justifyContent: 'space-around',
-            }}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h6" fontWeight="bold" color="#00bcd4">
-                  {listings.length}
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#888' }}>
-                  Oferte active
-                </Typography>
-              </Box>
-              <Divider orientation="vertical" flexItem sx={{ borderColor: '#1e2a3a' }} />
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h6" fontWeight="bold" color="#00bcd4">
-                  0
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#888' }}>
-                  Vânzări
-                </Typography>
-              </Box>
-            </Box>
-
-            <Divider sx={{ borderColor: '#1e2a3a', width: '100%' }} />
-
-            {/* Butoane actiuni */}
-            <Button
-              variant="contained"
-              fullWidth
-              startIcon={<AddCircleOutlineIcon />}
-              onClick={() => navigate('/add-listing')}
-              sx={{
-                backgroundColor: '#00bcd4',
-                textTransform: 'none',
-                fontWeight: 'bold',
-                '&:hover': { backgroundColor: '#0097a7' },
-              }}
-            >
-              Adaugă ofertă
-            </Button>
-
-            <Button
-              variant="outlined"
-              fullWidth
-              startIcon={<LogoutIcon />}
-              onClick={handleLogout}
-              sx={{
-                color: '#f44336',
-                borderColor: '#f4433644',
-                textTransform: 'none',
-                '&:hover': { backgroundColor: '#f4433611', borderColor: '#f44336' },
-              }}
-            >
-              Deconectare
-            </Button>
-
           </Box>
 
-          {/* ── COLOANA DREAPTA: Ofertele userului ── */}
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-
-            {/* Header */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Box>
-                <Typography variant="h5" fontWeight="bold" color="white">
-                  Ofertele mele
+          {/* Statistici */}
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            borderBottom: '1px solid #e5e5ea',
+          }}>
+            {[
+              { label: 'Anunțuri active', value: '0', icon: <ListAltIcon sx={{ color: '#5856d6', fontSize: 20 }} /> },
+              { label: 'Vânzări', value: '0', icon: <ShoppingBagIcon sx={{ color: '#5856d6', fontSize: 20 }} /> },
+              { label: 'Rating', value: '—', icon: <StarIcon sx={{ color: '#5856d6', fontSize: 20 }} /> },
+              { label: 'Total vânzări', value: '0 RON', icon: <LocalOfferIcon sx={{ color: '#5856d6', fontSize: 20 }} /> },
+            ].map((stat, i) => (
+              <Box
+                key={i}
+                sx={{
+                  p: 3,
+                  textAlign: 'center',
+                  borderRight: i < 3 ? '1px solid #e5e5ea' : 'none',
+                }}
+              >
+                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 0.5 }}>
+                  {stat.icon}
+                </Box>
+                <Typography variant="h5" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
+                  {stat.value}
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#888', mt: 0.5 }}>
-                  {listings.length} oferte publicate
+                <Typography variant="caption" sx={{ color: '#6b6b6b' }}>
+                  {stat.label}
                 </Typography>
               </Box>
+            ))}
+          </Box>
+
+          {/* Info cont */}
+          <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#1c1c1e', textTransform: 'uppercase', letterSpacing: 1, fontSize: 11 }}>
+              Informații cont
+            </Typography>
+
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="body2" sx={{ color: '#6b6b6b' }}>Username</Typography>
+              <Typography variant="body2" fontWeight="bold" sx={{ color: '#1c1c1e' }}>{user?.username}</Typography>
             </Box>
 
-            {/* Continut */}
-            {loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
-                <CircularProgress sx={{ color: '#00bcd4' }} />
-              </Box>
-            ) : error ? (
-              <Alert severity="error">{error}</Alert>
-            ) : listings.length === 0 ? (
-              <Box sx={{
-                textAlign: 'center',
-                mt: 8,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 2,
-              }}>
-                <ComputerIcon sx={{ fontSize: 64, color: '#1e2a3a' }} />
-                <Typography color="#888">
-                  Nu ai nicio ofertă publicată încă.
-                </Typography>
-                <Button
-                  variant="outlined"
-                  onClick={() => navigate('/add-listing')}
-                  sx={{ color: '#00bcd4', borderColor: '#00bcd4', textTransform: 'none' }}
-                >
-                  Adaugă prima ta ofertă
-                </Button>
-              </Box>
-            ) : (
-              <Box sx={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: 2,
-              }}>
-                {listings.map((listing) => (
-                  <Box key={listing._id}>
-                    <ListingCard listing={listing} />
-                  </Box>
-                ))}
-              </Box>
-            )}
+            <Divider sx={{ borderColor: '#e5e5ea' }} />
 
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="body2" sx={{ color: '#6b6b6b' }}>Email</Typography>
+              <Typography variant="body2" fontWeight="bold" sx={{ color: '#1c1c1e' }}>{user?.email}</Typography>
+            </Box>
+
+            <Divider sx={{ borderColor: '#e5e5ea' }} />
+
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="body2" sx={{ color: '#6b6b6b' }}>Tip cont</Typography>
+              <Typography variant="body2" fontWeight="bold" sx={{ color: '#1c1c1e' }}>Persoană fizică</Typography>
+            </Box>
           </Box>
         </Box>
+
+        {/* Actiuni rapide */}
+        <Box sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: 2,
+          mb: 3,
+        }}>
+          <Box
+            onClick={() => navigate('/profile/listings')}
+            sx={{
+              backgroundColor: '#ffffff',
+              border: '1px solid #e5e5ea',
+              borderRadius: 3,
+              p: 3,
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 1,
+              transition: 'all 0.2s',
+              '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,0.08)', borderColor: '#5856d633', transform: 'translateY(-2px)' },
+            }}
+          >
+            <ListAltIcon sx={{ fontSize: 32, color: '#5856d6' }} />
+            <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
+              Anunțurile mele
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#6b6b6b', textAlign: 'center' }}>
+              Vezi și gestionează anunțurile tale
+            </Typography>
+          </Box>
+
+          <Box
+            onClick={() => navigate('/add-listing')}
+            sx={{
+              backgroundColor: '#ffffff',
+              border: '1px solid #e5e5ea',
+              borderRadius: 3,
+              p: 3,
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 1,
+              transition: 'all 0.2s',
+              '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,0.08)', borderColor: '#5856d633', transform: 'translateY(-2px)' },
+            }}
+          >
+            <AddCircleOutlineIcon sx={{ fontSize: 32, color: '#5856d6' }} />
+            <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
+              Adaugă ofertă
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#6b6b6b', textAlign: 'center' }}>
+              Publică un anunț nou
+            </Typography>
+          </Box>
+
+          <Box
+            onClick={() => navigate('/profile/edit')}
+            sx={{
+              backgroundColor: '#ffffff',
+              border: '1px solid #e5e5ea',
+              borderRadius: 3,
+              p: 3,
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 1,
+              transition: 'all 0.2s',
+              '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,0.08)', borderColor: '#5856d633', transform: 'translateY(-2px)' },
+            }}
+          >
+            <PersonIcon sx={{ fontSize: 32, color: '#5856d6' }} />
+            <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
+              Editează profil
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#6b6b6b', textAlign: 'center' }}>
+              Actualizează datele tale
+            </Typography>
+          </Box>
+
+          <Box
+            onClick={() => navigate('/profile/transactions')}
+            sx={{
+              backgroundColor: '#ffffff',
+              border: '1px solid #e5e5ea',
+              borderRadius: 3,
+              p: 3,
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 1,
+              transition: 'all 0.2s',
+              '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,0.08)', borderColor: '#5856d633', transform: 'translateY(-2px)' },
+            }}
+          >
+            <ShoppingBagIcon sx={{ fontSize: 32, color: '#5856d6' }} />
+            <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
+              Istoric tranzacții
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#6b6b6b', textAlign: 'center' }}>
+              Vezi achizițiile și vânzările tale
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* Buton deconectare */}
+        <Button
+          variant="outlined"
+          fullWidth
+          startIcon={<LogoutIcon />}
+          onClick={handleLogout}
+          sx={{
+            color: '#ff3b30',
+            borderColor: '#ff3b3033',
+            textTransform: 'none',
+            py: 1.2,
+            '&:hover': { backgroundColor: '#ff3b3011', borderColor: '#ff3b30' },
+          }}
+        >
+          Deconectare
+        </Button>
+
       </Container>
     </Box>
   );

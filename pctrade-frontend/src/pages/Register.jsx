@@ -5,7 +5,6 @@ import {
   Box, Container, Typography, TextField,
   Button, Alert, CircularProgress, Divider
 } from '@mui/material';
-import ComputerIcon from '@mui/icons-material/Computer';
 
 const Register = () => {
   const { register } = useAuth();
@@ -43,35 +42,42 @@ const Register = () => {
   };
 
   return (
-    <Box sx={{ backgroundColor: '#080d1a', minHeight: '100vh', display: 'flex', alignItems: 'center' }}>
+    <Box sx={{
+      backgroundColor: '#f9f9fb',
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+    }}>
       <Container maxWidth="xs">
         <Box sx={{
-          backgroundColor: '#0f1525',
-          border: '1px solid #1e2a3a',
+          backgroundColor: '#ffffff',
+          border: '1px solid #e5e5ea',
           borderRadius: 3,
           p: 4,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           gap: 2,
+          boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
         }}>
 
           {/* Logo */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-            <ComputerIcon sx={{ color: '#00bcd4', fontSize: 32 }} />
-            <Typography variant="h5" fontWeight="bold" color="white">
-              Pc<span style={{ color: '#00bcd4' }}>Trade</span>
-            </Typography>
+          <Box
+            component={RouterLink}
+            to="/"
+            sx={{ textDecoration: 'none', mb: 1 }}
+          >
+            <img src="/logo1.svg" alt="ReSpec" style={{ height: 80 }} />
           </Box>
 
-          <Typography variant="h6" color="white" fontWeight="bold">
+          <Typography variant="h6" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
             Creează un cont
           </Typography>
-          <Typography variant="body2" sx={{ color: '#888', mt: -1 }}>
-            Alătură-te comunității PcTrade
+          <Typography variant="body2" sx={{ color: '#6b6b6b', mt: -1 }}>
+            Alătură-te comunității ReSpec
           </Typography>
 
-          <Divider sx={{ borderColor: '#1e2a3a', width: '100%' }} />
+          <Divider sx={{ borderColor: '#e5e5ea', width: '100%' }} />
 
           {error && <Alert severity="error" sx={{ width: '100%' }}>{error}</Alert>}
 
@@ -83,7 +89,7 @@ const Register = () => {
               required
               fullWidth
               size="small"
-              sx={{ backgroundColor: '#080d1a', borderRadius: 1 }}
+              sx={{ backgroundColor: '#f9f9fb', borderRadius: 1 }}
             />
             <TextField
               label="Email"
@@ -93,7 +99,7 @@ const Register = () => {
               required
               fullWidth
               size="small"
-              sx={{ backgroundColor: '#080d1a', borderRadius: 1 }}
+              sx={{ backgroundColor: '#f9f9fb', borderRadius: 1 }}
             />
             <TextField
               label="Parolă"
@@ -103,7 +109,7 @@ const Register = () => {
               required
               fullWidth
               size="small"
-              sx={{ backgroundColor: '#080d1a', borderRadius: 1 }}
+              sx={{ backgroundColor: '#f9f9fb', borderRadius: 1 }}
             />
             <TextField
               label="Confirmă parola"
@@ -113,7 +119,7 @@ const Register = () => {
               required
               fullWidth
               size="small"
-              sx={{ backgroundColor: '#080d1a', borderRadius: 1 }}
+              sx={{ backgroundColor: '#f9f9fb', borderRadius: 1 }}
             />
 
             <Button
@@ -122,20 +128,21 @@ const Register = () => {
               fullWidth
               disabled={loading}
               sx={{
-                backgroundColor: '#00bcd4',
+                backgroundColor: '#5856d6',
                 textTransform: 'none',
                 fontWeight: 'bold',
                 mt: 1,
-                '&:hover': { backgroundColor: '#0097a7' },
+                py: 1.2,
+                '&:hover': { backgroundColor: '#4745c0' },
               }}
             >
               {loading ? <CircularProgress size={22} sx={{ color: 'white' }} /> : 'Creează cont'}
             </Button>
           </Box>
 
-          <Typography variant="body2" sx={{ color: '#888' }}>
+          <Typography variant="body2" sx={{ color: '#6b6b6b' }}>
             Ai deja cont?{' '}
-            <RouterLink to="/login" style={{ color: '#00bcd4', textDecoration: 'none', fontWeight: 'bold' }}>
+            <RouterLink to="/login" style={{ color: '#5856d6', textDecoration: 'none', fontWeight: 'bold' }}>
               Loghează-te
             </RouterLink>
           </Typography>

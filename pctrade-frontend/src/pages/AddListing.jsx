@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { addListing } from '../api/listings';
+import { addListing, uploadListingImages } from '../api/listings';
 import {
   Box, Container, Typography, TextField,
   Button, Alert, CircularProgress, Divider,
@@ -36,42 +36,39 @@ const AddListing = () => {
   const navigate = useNavigate();
 
   const [form, setForm] = useState(INITIAL_FORM);
+  const [images, setImages] = useState([]);
+  const [isDragging, setIsDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const [images, setImages] = useState([]);
-  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // Proceseaza fisierul imagine
-const processImageFile = (file) => {
-  if (!file) return;
-  if (!file.type.startsWith('image/')) {
-    setError('Fișierul selectat nu este o imagine.');
-    return;
-  }
-  if (images.length >= 3) {
-    setError('Poți adăuga maxim 3 imagini.');
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = (e) =>
-    setImages((prev) => [...prev, { file, preview: e.target.result }]);
-  reader.readAsDataURL(file);
-  setError(null);
-};
+  const processImageFile = (file) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setError('Fișierul selectat nu este o imagine.');
+      return;
+    }
+    if (images.length >= 3) {
+      setError('Poți adăuga maxim 3 imagini.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) =>
+      setImages((prev) => [...prev, { file, preview: e.target.result }]);
+    reader.readAsDataURL(file);
+    setError(null);
+  };
 
-  // Click pe zona de upload
   const handleFileInput = (e) => {
-  Array.from(e.target.files).forEach(processImageFile);
-  if (fileInputRef.current) fileInputRef.current.value = '';
-};
+    Array.from(e.target.files).forEach(processImageFile);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
-  // Drag & drop
   const handleDragOver = useCallback((e) => {
     e.preventDefault();
     setIsDragging(true);
@@ -87,7 +84,6 @@ const processImageFile = (file) => {
     processImageFile(e.dataTransfer.files[0]);
   }, []);
 
-  // Paste din clipboard
   const handlePaste = useCallback((e) => {
     const items = e.clipboardData?.items;
     if (!items) return;
@@ -99,10 +95,10 @@ const processImageFile = (file) => {
     }
   }, []);
 
-const removeImage = (index) => {
-  setImages((prev) => prev.filter((_, i) => i !== index));
-  if (fileInputRef.current) fileInputRef.current.value = '';
-};
+  const removeImage = (index) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -127,55 +123,63 @@ const removeImage = (index) => {
 
     setLoading(true);
     try {
-      const formData = new FormData();
-      Object.entries(form).forEach(([key, val]) => {
-        if (val) formData.append(key, val);
-      });
-      formData.append('price', Number(form.price));
-      images.forEach((img) => formData.append('images', img.file)); // <-- schimbat
+      const listingData = {
+        title: form.title,
+        category: form.category,
+        condition: form.condition,
+        price: Number(form.price),
+        description: form.description,
+        brand: form.brand || null,
+        model: form.model || null,
+        location: form.location || null,
+        sellerId: user?.id || user?._id,
+      };
 
-      await addListing(formData);
+      const createdListing = await addListing(listingData);
+      await uploadListingImages(createdListing.id, images);
+
       setSuccess(true);
       setForm(INITIAL_FORM);
-      setImages([]); // <-- schimbat
+      setImages([]);
       setTimeout(() => navigate('/'), 1500);
     } catch (err) {
-      setError(err.response?.data?.message || 'Eroare la adăugarea ofertei. Încearcă din nou.');
+      setError(err.response?.data?.message || 'Eroare la adăugarea anunțului. Încearcă din nou.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Box sx={{ backgroundColor: '#080d1a', minHeight: '100vh', py: 6 }}>
+    <Box sx={{ backgroundColor: '#f9f9fb', minHeight: '100vh', py: 6 }}>
       <Container maxWidth="sm">
         <Box sx={{
-          backgroundColor: '#0f1525',
-          border: '1px solid #1e2a3a',
+          backgroundColor: '#ffffff',
+          border: '1px solid #e5e5ea',
           borderRadius: 3,
           p: 4,
           display: 'flex',
           flexDirection: 'column',
           gap: 2,
+          boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
         }}>
 
           {/* Header */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-            <AddCircleOutlineIcon sx={{ color: '#00bcd4', fontSize: 28 }} />
+            <AddCircleOutlineIcon sx={{ color: '#5856d6', fontSize: 28 }} />
             <Box>
-              <Typography variant="h6" fontWeight="bold" color="white">
-                Adaugă o ofertă
+              <Typography variant="h6" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
+                Adaugă un anunț
               </Typography>
-              <Typography variant="caption" sx={{ color: '#888' }}>
+              <Typography variant="caption" sx={{ color: '#6b6b6b' }}>
                 Completează detaliile componentei tale
               </Typography>
             </Box>
           </Box>
 
-          <Divider sx={{ borderColor: '#1e2a3a' }} />
+          <Divider sx={{ borderColor: '#e5e5ea' }} />
 
           {error && <Alert severity="error">{error}</Alert>}
-          {success && <Alert severity="success">Ofertă adăugată cu succes! Redirecționare...</Alert>}
+          {success && <Alert severity="success">Anunț adăugat cu succes! Redirecționare...</Alert>}
 
           <Box
             component="form"
@@ -193,12 +197,12 @@ const removeImage = (index) => {
               fullWidth
               size="small"
               placeholder="ex: Intel Core i7-12700K"
-              sx={{ backgroundColor: '#080d1a', borderRadius: 1 }}
+              sx={{ backgroundColor: '#f9f9fb', borderRadius: 1 }}
             />
 
             {/* Categorie + Conditie */}
             <Box sx={{ display: 'flex', gap: 2 }}>
-              <FormControl size="small" fullWidth sx={{ backgroundColor: '#080d1a', borderRadius: 1 }}>
+              <FormControl size="small" fullWidth sx={{ backgroundColor: '#f9f9fb', borderRadius: 1 }}>
                 <InputLabel>Categorie *</InputLabel>
                 <Select name="category" value={form.category} onChange={handleChange} label="Categorie *">
                   {CATEGORIES.map((cat) => (
@@ -207,7 +211,7 @@ const removeImage = (index) => {
                 </Select>
               </FormControl>
 
-              <FormControl size="small" fullWidth sx={{ backgroundColor: '#080d1a', borderRadius: 1 }}>
+              <FormControl size="small" fullWidth sx={{ backgroundColor: '#f9f9fb', borderRadius: 1 }}>
                 <InputLabel>Stare *</InputLabel>
                 <Select name="condition" value={form.condition} onChange={handleChange} label="Stare *">
                   {CONDITIONS.map((cond) => (
@@ -231,7 +235,7 @@ const removeImage = (index) => {
               }}
               inputProps={{ min: 0 }}
               sx={{
-                backgroundColor: '#080d1a',
+                backgroundColor: '#f9f9fb',
                 borderRadius: 1,
                 '& input[type=number]::-webkit-outer-spin-button': { display: 'none' },
                 '& input[type=number]::-webkit-inner-spin-button': { display: 'none' },
@@ -249,7 +253,7 @@ const removeImage = (index) => {
                 fullWidth
                 size="small"
                 placeholder="ex: Intel, ASUS..."
-                sx={{ backgroundColor: '#080d1a', borderRadius: 1 }}
+                sx={{ backgroundColor: '#f9f9fb', borderRadius: 1 }}
               />
               <TextField
                 label="Model"
@@ -259,7 +263,7 @@ const removeImage = (index) => {
                 fullWidth
                 size="small"
                 placeholder="ex: ROG Strix B550-F"
-                sx={{ backgroundColor: '#080d1a', borderRadius: 1 }}
+                sx={{ backgroundColor: '#f9f9fb', borderRadius: 1 }}
               />
             </Box>
 
@@ -272,7 +276,7 @@ const removeImage = (index) => {
               fullWidth
               size="small"
               placeholder="ex: București, Cluj-Napoca..."
-              sx={{ backgroundColor: '#080d1a', borderRadius: 1 }}
+              sx={{ backgroundColor: '#f9f9fb', borderRadius: 1 }}
             />
 
             {/* Descriere */}
@@ -287,31 +291,29 @@ const removeImage = (index) => {
                 rows={4}
                 size="small"
                 placeholder="Descrie starea componentei, specificații, motive de vânzare... (minim 50 caractere)"
-                sx={{ backgroundColor: '#080d1a', borderRadius: 1 }}
+                sx={{ backgroundColor: '#f9f9fb', borderRadius: 1 }}
               />
-              {/* Contor caractere */}
               <Typography
                 variant="caption"
                 sx={{
                   display: 'block',
                   textAlign: 'right',
                   mt: 0.5,
-                  color: form.description.length < 50 ? '#f44336' : '#4caf50',
+                  color: form.description.length < 50 ? '#ff3b30' : '#34c759',
                 }}
               >
                 {form.description.length}/50 caractere minime
               </Typography>
             </Box>
 
-            <Divider sx={{ borderColor: '#1e2a3a' }} />
+            <Divider sx={{ borderColor: '#e5e5ea' }} />
 
             {/* Upload imagini */}
             <Box>
-              <Typography variant="caption" sx={{ color: '#888', textTransform: 'uppercase', letterSpacing: 1 }}>
+              <Typography variant="caption" sx={{ color: '#6b6b6b', textTransform: 'uppercase', letterSpacing: 1 }}>
                 Imagini produs * (minim 1, maxim 3)
               </Typography>
 
-              {/* Zona drag & drop — ascunde daca am 3 imagini */}
               {images.length < 3 && (
                 <Box
                   onDragOver={handleDragOver}
@@ -320,9 +322,9 @@ const removeImage = (index) => {
                   onClick={() => fileInputRef.current?.click()}
                   sx={{
                     mt: 1,
-                    border: `2px dashed ${isDragging ? '#00bcd4' : '#1e2a3a'}`,
+                    border: `2px dashed ${isDragging ? '#5856d6' : '#e5e5ea'}`,
                     borderRadius: 2,
-                    backgroundColor: isDragging ? '#00bcd411' : '#080d1a',
+                    backgroundColor: isDragging ? '#5856d608' : '#f9f9fb',
                     p: 3,
                     display: 'flex',
                     flexDirection: 'column',
@@ -330,14 +332,14 @@ const removeImage = (index) => {
                     gap: 1,
                     cursor: 'pointer',
                     transition: 'all 0.2s',
-                    '&:hover': { borderColor: '#00bcd4', backgroundColor: '#00bcd411' },
+                    '&:hover': { borderColor: '#5856d6', backgroundColor: '#5856d608' },
                   }}
                 >
-                  <UploadFileIcon sx={{ fontSize: 36, color: isDragging ? '#00bcd4' : '#555' }} />
-                  <Typography variant="body2" sx={{ color: isDragging ? '#00bcd4' : '#888' }}>
+                  <UploadFileIcon sx={{ fontSize: 36, color: isDragging ? '#5856d6' : '#c7c7cc' }} />
+                  <Typography variant="body2" sx={{ color: isDragging ? '#5856d6' : '#6b6b6b' }}>
                     Trage imaginile aici sau apasă pentru a selecta
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#555' }}>
+                  <Typography variant="caption" sx={{ color: '#aeaeb2' }}>
                     Poți și să lipești (Ctrl+V) • {images.length}/3 imagini adăugate
                   </Typography>
                   <input
@@ -351,7 +353,6 @@ const removeImage = (index) => {
                 </Box>
               )}
 
-              {/* Preview imagini */}
               {images.length > 0 && (
                 <Box sx={{ display: 'flex', gap: 1.5, mt: 1.5, flexWrap: 'wrap' }}>
                   {images.map((img, index) => (
@@ -363,8 +364,8 @@ const removeImage = (index) => {
                         height: 100,
                         borderRadius: 2,
                         overflow: 'visible',
-                        border: '1px solid #1e2a3a',
-                        backgroundColor: '#080d1a',
+                        border: '1px solid #e5e5ea',
+                        backgroundColor: '#f9f9fb',
                         flexShrink: 0,
                       }}
                     >
@@ -379,7 +380,6 @@ const removeImage = (index) => {
                           padding: 4,
                         }}
                       />
-                      {/* Buton sterge */}
                       <Box
                         onClick={() => removeImage(index)}
                         sx={{
@@ -389,7 +389,7 @@ const removeImage = (index) => {
                           width: 22,
                           height: 22,
                           borderRadius: '50%',
-                          backgroundColor: '#f44336',
+                          backgroundColor: '#ff3b30',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -400,19 +400,18 @@ const removeImage = (index) => {
                         <CloseIcon sx={{ fontSize: 14, color: 'white' }} />
                       </Box>
 
-                      {/* Badge index */}
                       {index === 0 && (
                         <Box sx={{
                           position: 'absolute',
                           bottom: -8,
                           left: '50%',
                           transform: 'translateX(-50%)',
-                          backgroundColor: '#00bcd4',
+                          backgroundColor: '#5856d6',
                           borderRadius: 1,
                           px: 0.8,
                           py: 0.2,
                         }}>
-                          <Typography variant="caption" sx={{ color: '#000', fontSize: 10, fontWeight: 'bold' }}>
+                          <Typography variant="caption" sx={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
                             Principală
                           </Typography>
                         </Box>
@@ -423,7 +422,7 @@ const removeImage = (index) => {
               )}
             </Box>
 
-            <Divider sx={{ borderColor: '#1e2a3a' }} />
+            <Divider sx={{ borderColor: '#e5e5ea' }} />
 
             {/* Butoane */}
             <Box sx={{ display: 'flex', gap: 2 }}>
@@ -432,10 +431,10 @@ const removeImage = (index) => {
                 fullWidth
                 onClick={() => navigate('/')}
                 sx={{
-                  color: '#888',
-                  borderColor: '#1e2a3a',
+                  color: '#6b6b6b',
+                  borderColor: '#e5e5ea',
                   textTransform: 'none',
-                  '&:hover': { borderColor: '#888' },
+                  '&:hover': { borderColor: '#1c1c1e', color: '#1c1c1e' },
                 }}
               >
                 Anulează
@@ -446,15 +445,15 @@ const removeImage = (index) => {
                 fullWidth
                 disabled={loading || success}
                 sx={{
-                  backgroundColor: '#00bcd4',
+                  backgroundColor: '#5856d6',
                   textTransform: 'none',
                   fontWeight: 'bold',
-                  '&:hover': { backgroundColor: '#0097a7' },
+                  '&:hover': { backgroundColor: '#4745c0' },
                 }}
               >
                 {loading
                   ? <CircularProgress size={22} sx={{ color: 'white' }} />
-                  : 'Publică oferta'
+                  : 'Publică Anunțul'
                 }
               </Button>
             </Box>

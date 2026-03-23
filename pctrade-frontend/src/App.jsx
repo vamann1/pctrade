@@ -12,19 +12,46 @@ import ListingDetail from './pages/ListingDetail';
 import Profile from './pages/Profile';
 import Messages from './pages/Messages';
 import Footer from './components/Footer';
+import ProfileListings from './pages/ProfileListings';
+import EditProfile from './pages/EditProfile';
+import EditListing from './pages/EditListing';
+import TransactionHistory from './pages/TransactionHistory';
 
-// Tema dark globala
+
 const theme = createTheme({
   palette: {
-    mode: 'dark',
-    primary: { main: '#00bcd4' },
+    mode: 'light',
+    primary: { main: '#5856d6' },
     background: {
-      default: '#080d1a',
-      paper: '#0f1525',
+      default: '#f2f2f7',
+      paper: '#ffffff',
+    },
+    text: {
+      primary: '#1c1c1e',
+      secondary: '#6b6b6b',
     },
   },
   typography: {
     fontFamily: '"Inter", "Roboto", sans-serif',
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          textTransform: 'none',
+          fontWeight: 600,
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+        },
+      },
+    },
   },
 });
 
@@ -47,18 +74,13 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/listing/:id" element={<ListingDetail />} />
-              <Route path="/add-listing" element={
-                <ProtectedRoute><AddListing /></ProtectedRoute>
-              } />
-              <Route path="/profile" element={
-                <ProtectedRoute><Profile /></ProtectedRoute>
-              } />
-              <Route path="/messages" element={
-                <ProtectedRoute><Messages /></ProtectedRoute>
-              } />
-              <Route path="/messages/:conversationId" element={
-                <ProtectedRoute><Messages /></ProtectedRoute>
-              } />
+              <Route path="/add-listing" element={<ProtectedRoute><AddListing /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/profile/listings" element={<ProtectedRoute><ProfileListings /></ProtectedRoute>} />
+              <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+              <Route path="/profile/edit" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
+              <Route path="/listing/:id/edit" element={<ProtectedRoute><EditListing /></ProtectedRoute>} />
+              <Route path="/profile/transactions" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
             </Routes>
           </Box>
           <Footer />

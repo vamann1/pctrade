@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:5000/api', // schimba cu URL-ul backend-ului tau
+  baseURL: 'http://localhost:8080/api', // schimba cu URL-ul backend-ului tau
   headers: {
     'Content-Type': 'application/json',
   },
@@ -23,7 +23,8 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Redirectam la login doar daca NU suntem deja pe pagina de login
+    if (error.response?.status === 401 && !window.location.pathname.includes('/login')) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';

@@ -17,10 +17,16 @@ export const NotificationsProvider = ({ children }) => {
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
     try {
-      const data = await getNotifications();
+      const userId = user?.id || user?._id;
+      const data = await getNotifications(userId);
       setNotifications(data);
-    } catch {
-      setNotifications(MOCK_NOTIFICATIONS);
+    } catch (err) {
+      if (err.response?.status === 404) {
+        setNotifications([]);
+        clearInterval(pollRef.current);
+        return;
+      }
+      setNotifications([]);
     }
   }, [user]);
 
@@ -41,13 +47,14 @@ export const NotificationsProvider = ({ children }) => {
       await markAsRead(notificationId);
     } catch {}
     setNotifications((prev) =>
-      prev.map((n) => n._id === notificationId ? { ...n, read: true } : n)
+      prev.map((n) => n.id === notificationId ? { ...n, read: true } : n)
     );
   };
 
   const handleMarkAllAsRead = async () => {
     try {
-      await markAllAsRead();
+      const userId = user?.id || user?._id;
+      await markAllAsRead(userId);
     } catch {}
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
