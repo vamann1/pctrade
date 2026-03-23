@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/pctrade
+    username: pctrade_user
+    password: pctrade_pass
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+minio:
+  endpoint: http://localhost:9000
+  access-key: minioadmin
+  secret-key: minioadmin
+  bucket: pctrade-images
+
+stripe:
+  secret-key: sk_test_... # de pe Stripe dashboard
+  webhook-secret: whsec_... # vine de la Stripe CLI
+
+groq:
+  api-key: gsq_... # din Groq console
+  model: llama3-70b-8192

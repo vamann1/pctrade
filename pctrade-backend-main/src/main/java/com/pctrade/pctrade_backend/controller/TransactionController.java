@@ -1,0 +1,106 @@
+package com.pctrade.pctrade_backend.controller;
+
+import com.pctrade.pctrade_backend.dto.SellerHistoryDto;
+import com.pctrade.pctrade_backend.dto.TransactionHistoryDto;
+import com.pctrade.pctrade_backend.model.*;
+import com.pctrade.pctrade_backend.repository.*;
+import com.pctrade.pctrade_backend.service.NotificationService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/transactions")
+@RequiredArgsConstructor
+public class TransactionController {
+
+    private final TransactionRepository transactionRepository;
+    private final ListingRepository listingRepository;
+    private final UserRepository userRepository;
+    private final NotificationService notificationService;
+
+    @PostMapping
+    public Transaction createTransaction(@RequestParam Long buyerId, @RequestParam Long listingId) {
+        User buyer = userRepository.findById(buyerId)
+                .orElseThrow(() -> new RuntimeException("Cumpărătorul nu a fost găsit!"));
+
+        Listing listing = listingRepository.findById(listingId)
+                .orElseThrow(() -> new RuntimeException("Anunțul nu a fost găsit!"));
+
+        if (listing.getSeller() == null) {
+            throw new RuntimeException("Eroare: Acest anunț este vechi și nu are un vânzător valid!");
+        }
+
+        if (listing.getSeller().getId().equals(buyer.getId())) {
+            throw new RuntimeException("Nu poți cumpăra propriul produs!");
+        }
+
+        Transaction transaction = Transaction.builder()
+                .buyer(buyer)
+                .listing(listing)
+                .priceAtPurchase(listing.getPrice())
+                .status(TransactionStatus.PENDING)
+                .build();
+
+        Transaction savedTransaction = transactionRepository.save(transaction);
+
+        notificationService.createNotification(
+                listing.getSeller(),
+                "purchase",
+                buyer.getUsername() + " a cumpărat " + listing.getTitle() + " pentru " + listing.getPrice() + " RON",
+                "/profile/listings"
+        );
+
+        return savedTransaction;
+    }
+
+    @PatchMapping("/{id}/status")
+    public Transaction updateTransactionStatus(
+            @PathVariable Long id,
+            @RequestParam TransactionStatus status) {
+
+        Transaction transaction = transactionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tranzacția nu a fost găsită!"));
+
+        transaction.setStatus(status);
+
+        if (status == TransactionStatus.COMPLETED) {
+            Listing listing = transaction.getListing();
+            listing.setAvailable(false);
+            listingRepository.save(listing);
+        }
+
+        return transactionRepository.save(transaction);
+    }
+
+    @GetMapping("/buyer/{buyerId}")
+    public List<TransactionHistoryDto> getBuyerHistory(@PathVariable Long buyerId) {
+        List<Transaction> transactions = transactionRepository.findByBuyerId(buyerId);
+
+        return transactions.stream().map(transaction -> {
+            return TransactionHistoryDto.builder()
+                    .transactionId(transaction.getId())
+                    .listingTitle(transaction.getListing().getTitle())
+                    .price(transaction.getListing().getPrice())
+                    .status(transaction.getStatus().name())
+                    .sellerName(transaction.getListing().getSeller().getUsername())
+                    .build();
+        }).toList();
+    }
+
+    @GetMapping("/seller/{sellerId}")
+    public List<SellerHistoryDto> getSellerHistory(@PathVariable Long sellerId) {
+        List<Transaction> transactions = transactionRepository.findByListingSellerId(sellerId);
+
+        return transactions.stream().map(transaction -> {
+            return SellerHistoryDto.builder()
+                    .transactionId(transaction.getId())
+                    .listingTitle(transaction.getListing().getTitle())
+                    .price(transaction.getListing().getPrice())
+                    .status(transaction.getStatus().name())
+                    .buyerName(transaction.getBuyer().getUsername())
+                    .build();
+        }).toList();
+    }
+}
