@@ -52,8 +52,9 @@ const TransactionHistory = () => {
         getTransactionsByBuyer(userId),
         getTransactionsBySeller(userId),
       ]);
-      setPurchases(buyerData);
-      setSales(sellerData);
+      
+      setPurchases([...buyerData].reverse());
+      setSales([...sellerData].reverse());
 
       // Verifica review-urile existente pentru tranzactiile COMPLETED
       const completedPurchases = buyerData.filter(t => t.status === 'COMPLETED');
@@ -229,9 +230,25 @@ const handlePaymentClose = () => {
               {/* Info tranzactie */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#1c1c1e' }} noWrap>
-                    {t.listingTitle}
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#1c1c1e' }} noWrap>
+                      {t.listingTitle}
+                    </Typography>
+                    {!t.listingAvailable && (
+                      <Chip
+                        label="Vândut"
+                        size="small"
+                        sx={{
+                          backgroundColor: '#34c75922',
+                          color: '#34c759',
+                          border: '1px solid #34c75944',
+                          fontWeight: 'bold',
+                          fontSize: 11,
+                          flexShrink: 0,
+                        }}
+                      />
+                    )}
+                  </Box>
                   <Typography variant="caption" sx={{ color: '#6b6b6b' }}>
                     {type === 'purchases' ? `Vânzător: @${t.sellerName}` : `Cumpărător: @${t.buyerName}`}
                   </Typography>

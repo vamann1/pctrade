@@ -16,7 +16,8 @@ import java.util.HashMap;
 import java.util.Map;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
-
+import com.pctrade.pctrade_backend.model.Listing;
+import com.pctrade.pctrade_backend.repository.*;
 import java.util.List;
 
 @RestController
@@ -26,6 +27,14 @@ public class UserController {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final NotificationRepository notificationRepository;
+    private final FavoriteRepository favoriteRepository;
+    private final ReviewRepository reviewRepository;
+    private final MessageRepository messageRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final TransactionRepository transactionRepository;
+    private final ListingRepository listingRepository;
+    private final ListingImageRepository listingImageRepository;
 
     // API-ul prin care vedem toți utilizatorii
     @GetMapping
@@ -98,12 +107,60 @@ public class UserController {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Userul nu a fost găsit!"));
 
-        // Verificam parola curenta
         if (!passwordEncoder.matches(body.get("password"), user.getPassword())) {
             return ResponseEntity.status(400).body(Map.of("message", "Parolă incorectă!"));
         }
 
+        // 1. Notificari
+        notificationRepository.deleteAll(
+                notificationRepository.findByUserIdOrderByCreatedAtDesc(id)
+        );
+
+        // 2. Favorite
+        favoriteRepository.deleteAll(
+                favoriteRepository.findByUserId(id)
+        );
+
+        // 3. Reviews primite (ca vanzator)
+        reviewRepository.deleteAll(
+                reviewRepository.findByReviewedUserId(id)
+        );
+
+        // 3b. Reviews date (ca cumparator)
+        reviewRepository.deleteAll(
+                reviewRepository.findByReviewerId(id)
+        );
+
+        // 4. Mesaje trimise si primite
+        messageRepository.deleteAll(
+                messageRepository.findConversationsByUserId(id)
+        );
+
+        // 5. Tokeni de reset parola
+        passwordResetTokenRepository.deleteByUserId(id);
+
+        // 6. Tranzactii ca buyer
+        transactionRepository.deleteAll(
+                transactionRepository.findByBuyerId(id)
+        );
+
+        // 7. Tranzactii ca seller
+        transactionRepository.deleteAll(
+                transactionRepository.findByListingSellerId(id)
+        );
+
+        // 8. Listinguri si imaginile lor
+        List<Listing> listings = listingRepository.findBySellerId(id);
+        for (Listing listing : listings) {
+            listingImageRepository.deleteAll(
+                    listingImageRepository.findByListingId(listing.getId())
+            );
+        }
+        listingRepository.deleteAll(listings);
+
+        // 9. Stergem userul
         userRepository.delete(user);
+
         return ResponseEntity.ok(Map.of("message", "Cont șters cu succes!"));
     }
 }

@@ -43,6 +43,8 @@ const login = async (username, password) => {
 
   const register = async (username, email, password) => {
     await registerUser(username, email, password);
+    // Login automat dupa register
+    await login(username, password);
   };
 
   const logout = () => {

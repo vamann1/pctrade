@@ -131,9 +131,10 @@ public class TransactionController {
             return TransactionHistoryDto.builder()
                     .transactionId(transaction.getId())
                     .listingTitle(transaction.getListing().getTitle())
-                    .price(transaction.getListing().getPrice())
+                    .price(transaction.getPriceAtPurchase())
                     .status(transaction.getStatus().name())
                     .sellerName(transaction.getListing().getSeller().getUsername())
+                    .listingAvailable(transaction.getListing().isAvailable()) // Adauga asta
                     .build();
         }).toList();
     }
@@ -146,9 +147,10 @@ public class TransactionController {
             return SellerHistoryDto.builder()
                     .transactionId(transaction.getId())
                     .listingTitle(transaction.getListing().getTitle())
-                    .price(transaction.getListing().getPrice())
+                    .price(transaction.getPriceAtPurchase())
                     .status(transaction.getStatus().name())
                     .buyerName(transaction.getBuyer().getUsername())
+                    .listingAvailable(transaction.getListing().isAvailable())
                     .build();
         }).toList();
     }

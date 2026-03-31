@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   AppBar, Toolbar, Typography, Button, IconButton,
   Box, Menu, MenuItem, Avatar, Divider,
-  InputBase, Chip, Badge
+  InputBase, Chip, Badge, ListItemIcon
 } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import SearchIcon from '@mui/icons-material/Search';
@@ -14,6 +14,13 @@ import CircleIcon from '@mui/icons-material/Circle';
 import { useNotifications } from '../context/NotificationsContext';
 import { getUnreadMessagesCount } from '../api/messages';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import ListAltIcon from '@mui/icons-material/ListAlt';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import HistoryIcon from '@mui/icons-material/History';
+import StarOutlineIcon from '@mui/icons-material/StarOutline';
+import LogoutIcon from '@mui/icons-material/Logout';
 
 const notifIcon = (type) => {
   switch (type) {
@@ -23,6 +30,26 @@ const notifIcon = (type) => {
     case 'offer_rejected': return '❌';
     case 'purchase_request': return '🛒';
     default: return '🔔';
+  }
+};
+
+const menuItemStyle = {
+  fontSize: 14,
+  fontWeight: 500,
+  color: '#48484a',
+  borderRadius: 1.5,
+  mx: 1,
+  py: 1,
+  transition: 'all 0.15s',
+  '&:hover': { 
+    backgroundColor: '#5856d608', 
+    color: '#5856d6',
+    '& .MuiListItemIcon-root': { color: '#5856d6' } 
+  },
+  '& .MuiListItemIcon-root': { 
+    minWidth: '36px !important', 
+    color: '#8e8e93',
+    transition: 'color 0.15s',
   }
 };
 
@@ -115,15 +142,18 @@ const Navbar = () => {
             display: 'flex',
             alignItems: 'center',
             backgroundColor: '#f2f2f7',
-            border: '1px solid #1c1c1e44',
-            borderRadius: 2,
+            border: '1px solid #5856d633', 
+            borderRadius: 1,
             px: 2,
             py: 0.5,
-            '&:focus-within': { borderColor: '#5856d6' },
-            transition: 'border-color 0.2s',
+            '&:focus-within': { 
+              borderColor: '#5856d6',
+              boxShadow: '0 0 0 1px #5856d6'
+            },
+            transition: 'all 0.2s',
           }}
         >
-          <SearchIcon sx={{ color: '#888', fontSize: 20, mr: 1 }} />
+          <SearchIcon sx={{ color: '#5856d6', fontSize: 20, mr: 1 }} />
           <InputBase
             placeholder="Caută componente, periferice, laptopuri..."
             value={searchValue}
@@ -253,17 +283,21 @@ const Navbar = () => {
               </Badge>
             </IconButton>
 
-            {/* Buton Adauga Anunț*/}
+            {/* Buton Adauga Anunț */}
             <Button
               component={RouterLink}
               to="/add-listing"
               variant="outlined"
               startIcon={<AddCircleOutlineIcon />}
               sx={{
-                color: '#1c1c1e',
-                borderColor: '#1c1c1e44',
+                color: '#5856d6', // Text mov
+                borderColor: '#5856d644', // Bordură mov deschis
                 textTransform: 'none',
-                '&:hover': { backgroundColor: '#f2f2f7', borderColor: '#1c1c1e' },
+                fontWeight: 600,
+                '&:hover': { 
+                  backgroundColor: '#5856d611', // Fundal foarte deschis la hover
+                  borderColor: '#5856d6' 
+                },
               }}
             >
               Adaugă anunț
@@ -298,61 +332,89 @@ const Navbar = () => {
                 sx: {
                   backgroundColor: '#ffffff',
                   color: '#1c1c1e',
-                  minWidth: 200,
+                  minWidth: 240,
+                  borderRadius: 3,
+                  mt: 1.5,
                   border: '1px solid #e5e5ea',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.10)',
+                  boxShadow: '0 10px 32px rgba(0,0,0,0.12)',
+                  overflow: 'visible',
+                  '&:before': {
+                    content: '""',
+                    display: 'block',
+                    position: 'absolute',
+                    top: 0,
+                    right: 14,
+                    width: 10,
+                    height: 10,
+                    bgcolor: 'background.paper',
+                    transform: 'translateY(-50%) rotate(45deg)',
+                    zIndex: 0,
+                    borderLeft: '1px solid #e5e5ea',
+                    borderTop: '1px solid #e5e5ea',
+                  },
                 }
               }}
+              transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+              anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             >
-              <MenuItem disabled sx={{ opacity: 0.6, fontSize: 13, color: '#6b6b6b' }}>
-                {user.username}
-              </MenuItem>
-              <Divider sx={{ borderColor: '#e5e5ea' }} />
-              <MenuItem
-                component={RouterLink}
-                to="/profile"
-                onClick={handleMenuClose}
-                sx={{ color: '#1c1c1e', '&:hover': { backgroundColor: '#f2f2f7' } }}
-              >
+              <Box sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Avatar sx={{ bgcolor: '#5856d6', width: 40, height: 40, fontSize: 16, fontWeight: 'bold' }}>
+                  {user.username?.[0]?.toUpperCase()}
+                </Avatar>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant="subtitle2" fontWeight="bold" noWrap sx={{ color: '#1c1c1e' }}>
+                    {user.username}
+                  </Typography>
+                  <Typography variant="caption" noWrap sx={{ color: '#8e8e93', display: 'block' }}>
+                    {user.email}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Divider sx={{ my: 1, borderColor: '#f2f2f7' }} />
+
+              <MenuItem component={RouterLink} to="/profile" onClick={handleMenuClose} sx={menuItemStyle}>
+                <ListItemIcon><PersonOutlineIcon fontSize="small" /></ListItemIcon>
                 Profilul meu
               </MenuItem>
-              <MenuItem
-                component={RouterLink}
-                to="/profile/listings"
-                onClick={handleMenuClose}
-                sx={{ color: '#1c1c1e', '&:hover': { backgroundColor: '#f2f2f7' } }}
-              >
+
+              <MenuItem component={RouterLink} to="/profile/listings" onClick={handleMenuClose} sx={menuItemStyle}>
+                <ListItemIcon><ListAltIcon fontSize="small" /></ListItemIcon>
                 Anunțurile mele
               </MenuItem>
-              <MenuItem
-                component={RouterLink}
-                to="/profile/edit"
-                onClick={handleMenuClose}
-                sx={{ color: '#1c1c1e', '&:hover': { backgroundColor: '#f2f2f7' } }}
-              >
+
+              <MenuItem component={RouterLink} to="/profile/favorites" onClick={handleMenuClose} sx={menuItemStyle}>
+                <ListItemIcon><FavoriteBorderIcon fontSize="small" /></ListItemIcon>
+                Favorite
+              </MenuItem>
+
+              <MenuItem component={RouterLink} to="/profile/edit" onClick={handleMenuClose} sx={menuItemStyle}>
+                <ListItemIcon><SettingsOutlinedIcon fontSize="small" /></ListItemIcon>
                 Editează profilul
               </MenuItem>
-              <MenuItem
-                component={RouterLink}
-                to="/profile/transactions"
-                onClick={handleMenuClose}
-                sx={{ color: '#1c1c1e', '&:hover': { backgroundColor: '#f2f2f7' } }}
-              >
+
+              <MenuItem component={RouterLink} to="/profile/transactions" onClick={handleMenuClose} sx={menuItemStyle}>
+                <ListItemIcon><HistoryIcon fontSize="small" /></ListItemIcon>
                 Istoric tranzacții
               </MenuItem>
-              <MenuItem
-                component={RouterLink}
-                to="/profile/reviews"
-                onClick={handleMenuClose}
-                sx={{ color: '#1c1c1e', '&:hover': { backgroundColor: '#f2f2f7' } }}
-              >
+
+              <MenuItem component={RouterLink} to="/profile/reviews" onClick={handleMenuClose} sx={menuItemStyle}>
+                <ListItemIcon><StarOutlineIcon fontSize="small" /></ListItemIcon>
                 Recenziile mele
               </MenuItem>
-              <Divider sx={{ borderColor: '#e5e5ea' }} />
-              <MenuItem
-                onClick={handleLogout}
-                sx={{ color: '#ff3b30', '&:hover': { backgroundColor: '#ff3b3011' } }}
+
+              <Divider sx={{ my: 1, borderColor: '#f2f2f7' }} />
+
+              <MenuItem 
+                onClick={handleLogout} 
+                sx={{ 
+                  ...menuItemStyle, 
+                  color: '#ff3b30', 
+                  fontWeight: '600',
+                  '&:hover': { backgroundColor: '#ff3b3011' } 
+                }}
               >
+                <ListItemIcon><LogoutIcon fontSize="small" sx={{ color: '#ff3b30' }} /></ListItemIcon>
                 Deconectare
               </MenuItem>
             </Menu>

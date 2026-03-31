@@ -33,7 +33,7 @@ const Register = () => {
     setLoading(true);
     try {
       await register(username, email, password);
-      navigate('/login', { state: { registered: true } });
+      navigate('/'); // Direct la home, deja e logat
     } catch (err) {
       setError(err.response?.data?.message || 'Eroare la înregistrare. Încearcă din nou.');
     } finally {

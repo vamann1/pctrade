@@ -5,12 +5,10 @@ import axiosInstance from '../api/axiosInstance';
 import {
   Box, Container, Typography, TextField,
   Button, CircularProgress, Divider,
-  Radio, RadioGroup, FormControlLabel,
   Stepper, Step, StepLabel, Alert,
-  InputAdornment, Chip
+  InputAdornment
 } from '@mui/material';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
-import StoreIcon from '@mui/icons-material/Store';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import LockIcon from '@mui/icons-material/Lock';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -31,8 +29,7 @@ const Checkout = () => {
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Step 1 - Livrare
-  const [deliveryMethod, setDeliveryMethod] = useState('delivery');
+  // Step 1 - Livrare (Am eliminat deliveryMethod state deoarece ramane doar 'delivery')
   const [address, setAddress] = useState({
     fullName: user?.username || '',
     phone: '',
@@ -89,7 +86,6 @@ const Checkout = () => {
   };
 
   const isAddressValid = () => {
-    if (deliveryMethod === 'pickup') return true;
     return address.fullName && address.phone && address.street && address.city;
   };
 
@@ -98,13 +94,13 @@ const Checkout = () => {
       cardForm.cardName && cardForm.expiry.length === 5 && cardForm.cvv.length === 3;
   };
 
+  // Taxa se adauga mereu acum
   const totalPrice = transaction
-    ? Number(transaction.priceAtPurchase) + (deliveryMethod === 'delivery' ? DELIVERY_FEE : 0)
+    ? Number(transaction.priceAtPurchase) + DELIVERY_FEE
     : 0;
 
   const handlePayment = async () => {
     setPaymentLoading(true);
-    // Simulam procesarea
     await new Promise(resolve => setTimeout(resolve, 2500));
     try {
       await axiosInstance.patch(`/transactions/${transactionId}/status`, null, {
@@ -134,7 +130,6 @@ const Checkout = () => {
     <Box sx={{ backgroundColor: '#f9f9fb', minHeight: '100vh', py: 5 }}>
       <Container maxWidth="lg">
 
-        {/* Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
           <Button
             startIcon={<ArrowBackIcon />}
@@ -148,17 +143,14 @@ const Checkout = () => {
           </Typography>
         </Box>
 
-        {/* Stepper */}
         <Stepper activeStep={step} sx={{ mb: 4 }}>
           {STEPS.map((label) => (
             <Step key={label}>
-              <StepLabel
-                sx={{
+              <StepLabel sx={{
                   '& .MuiStepLabel-label': { fontWeight: 600 },
                   '& .MuiStepIcon-root.Mui-active': { color: '#5856d6' },
                   '& .MuiStepIcon-root.Mui-completed': { color: '#34c759' },
-                }}
-              >
+                }}>
                 {label}
               </StepLabel>
             </Step>
@@ -167,10 +159,7 @@ const Checkout = () => {
 
         <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
 
-          {/* ── STANGA: Continut step ── */}
           <Box sx={{ flex: 1, minWidth: 0 }}>
-
-            {/* STEP 0 — Livrare */}
             {step === 0 && (
               <Box sx={{
                 backgroundColor: '#ffffff',
@@ -181,152 +170,74 @@ const Checkout = () => {
                 flexDirection: 'column',
                 gap: 3,
               }}>
-                <Typography variant="h6" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
-                  Metodă de livrare
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                   <LocalShippingIcon sx={{ color: '#5856d6' }} />
+                   <Typography variant="h6" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
+                     Detalii livrare curier
+                   </Typography>
+                </Box>
 
-                <RadioGroup value={deliveryMethod} onChange={(e) => setDeliveryMethod(e.target.value)}>
-                  <Box sx={{
-                    border: `2px solid ${deliveryMethod === 'delivery' ? '#5856d6' : '#e5e5ea'}`,
-                    borderRadius: 2,
-                    p: 2,
-                    mb: 1.5,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
-                    backgroundColor: deliveryMethod === 'delivery' ? '#5856d608' : 'transparent',
-                  }}
-                    onClick={() => setDeliveryMethod('delivery')}
-                  >
-                    <FormControlLabel
-                      value="delivery"
-                      control={<Radio sx={{ '&.Mui-checked': { color: '#5856d6' } }} />}
-                      label={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                          <LocalShippingIcon sx={{ color: '#5856d6' }} />
-                          <Box>
-                            <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
-                              Livrare la domiciliu
-                            </Typography>
-                            <Typography variant="caption" sx={{ color: '#6b6b6b' }}>
-                              Estimat 2-3 zile lucrătoare
-                            </Typography>
-                          </Box>
-                          <Chip
-                            label={`+${DELIVERY_FEE} RON`}
-                            size="small"
-                            sx={{ ml: 'auto', backgroundColor: '#5856d611', color: '#5856d6', fontWeight: 'bold' }}
-                          />
-                        </Box>
-                      }
-                      sx={{ m: 0, width: '100%' }}
-                    />
-                  </Box>
-
-                  <Box sx={{
-                    border: `2px solid ${deliveryMethod === 'pickup' ? '#5856d6' : '#e5e5ea'}`,
-                    borderRadius: 2,
-                    p: 2,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
-                    backgroundColor: deliveryMethod === 'pickup' ? '#5856d608' : 'transparent',
-                  }}
-                    onClick={() => setDeliveryMethod('pickup')}
-                  >
-                    <FormControlLabel
-                      value="pickup"
-                      control={<Radio sx={{ '&.Mui-checked': { color: '#5856d6' } }} />}
-                      label={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                          <StoreIcon sx={{ color: '#34c759' }} />
-                          <Box>
-                            <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
-                              Ridicare personală
-                            </Typography>
-                            <Typography variant="caption" sx={{ color: '#6b6b6b' }}>
-                              {transaction?.listing?.location
-                                ? `De la: ${transaction.listing.location}`
-                                : 'Locație stabilită cu vânzătorul'}
-                            </Typography>
-                          </Box>
-                          <Chip
-                            label="Gratuit"
-                            size="small"
-                            sx={{ ml: 'auto', backgroundColor: '#34c75922', color: '#34c759', fontWeight: 'bold' }}
-                          />
-                        </Box>
-                      }
-                      sx={{ m: 0, width: '100%' }}
-                    />
-                  </Box>
-                </RadioGroup>
-
-                {/* Adresa - doar daca e delivery */}
-                {deliveryMethod === 'delivery' && (
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
-                      Adresă de livrare
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                      <TextField
-                        label="Nume complet *"
-                        name="fullName"
-                        value={address.fullName}
-                        onChange={handleAddressChange}
-                        fullWidth
-                        size="small"
-                        sx={{ backgroundColor: '#f9f9fb' }}
-                      />
-                      <TextField
-                        label="Telefon *"
-                        name="phone"
-                        value={address.phone}
-                        onChange={handleAddressChange}
-                        fullWidth
-                        size="small"
-                        sx={{ backgroundColor: '#f9f9fb' }}
-                      />
-                    </Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Box sx={{ display: 'flex', gap: 2 }}>
                     <TextField
-                      label="Stradă și număr *"
-                      name="street"
-                      value={address.street}
+                      label="Nume complet *"
+                      name="fullName"
+                      value={address.fullName}
                       onChange={handleAddressChange}
                       fullWidth
                       size="small"
-                      placeholder="ex: Str. Mihai Eminescu, nr. 10, ap. 5"
                       sx={{ backgroundColor: '#f9f9fb' }}
                     />
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                      <TextField
-                        label="Oraș *"
-                        name="city"
-                        value={address.city}
-                        onChange={handleAddressChange}
-                        fullWidth
-                        size="small"
-                        sx={{ backgroundColor: '#f9f9fb' }}
-                      />
-                      <TextField
-                        label="Județ"
-                        name="county"
-                        value={address.county}
-                        onChange={handleAddressChange}
-                        fullWidth
-                        size="small"
-                        sx={{ backgroundColor: '#f9f9fb' }}
-                      />
-                      <TextField
-                        label="Cod poștal"
-                        name="postalCode"
-                        value={address.postalCode}
-                        onChange={handleAddressChange}
-                        fullWidth
-                        size="small"
-                        sx={{ backgroundColor: '#f9f9fb' }}
-                      />
-                    </Box>
+                    <TextField
+                      label="Telefon *"
+                      name="phone"
+                      value={address.phone}
+                      onChange={handleAddressChange}
+                      fullWidth
+                      size="small"
+                      sx={{ backgroundColor: '#f9f9fb' }}
+                    />
                   </Box>
-                )}
+                  <TextField
+                    label="Stradă și număr *"
+                    name="street"
+                    value={address.street}
+                    onChange={handleAddressChange}
+                    fullWidth
+                    size="small"
+                    placeholder="ex: Str. Mihai Eminescu, nr. 10, ap. 5"
+                    sx={{ backgroundColor: '#f9f9fb' }}
+                  />
+                  <Box sx={{ display: 'flex', gap: 2 }}>
+                    <TextField
+                      label="Oraș *"
+                      name="city"
+                      value={address.city}
+                      onChange={handleAddressChange}
+                      fullWidth
+                      size="small"
+                      sx={{ backgroundColor: '#f9f9fb' }}
+                    />
+                    <TextField
+                      label="Județ"
+                      name="county"
+                      value={address.county}
+                      onChange={handleAddressChange}
+                      fullWidth
+                      size="small"
+                      sx={{ backgroundColor: '#f9f9fb' }}
+                    />
+                    <TextField
+                      label="Cod poștal"
+                      name="postalCode"
+                      value={address.postalCode}
+                      onChange={handleAddressChange}
+                      fullWidth
+                      size="small"
+                      sx={{ backgroundColor: '#f9f9fb' }}
+                    />
+                  </Box>
+                </Box>
 
                 <Button
                   variant="contained"
@@ -347,7 +258,6 @@ const Checkout = () => {
               </Box>
             )}
 
-            {/* STEP 1 — Plata */}
             {step === 1 && (
               <Box sx={{
                 backgroundColor: '#ffffff',
@@ -355,7 +265,6 @@ const Checkout = () => {
                 borderRadius: 3,
                 overflow: 'hidden',
               }}>
-                {/* Header plata */}
                 <Box sx={{
                   background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
                   p: 2.5,
@@ -381,8 +290,6 @@ const Checkout = () => {
                 </Box>
 
                 <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
-
-                  {/* Tip card */}
                   <Box>
                     <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#1c1c1e', mb: 1.5 }}>
                       Tip card
@@ -423,57 +330,8 @@ const Checkout = () => {
                     </Box>
                   </Box>
 
-                  {/* Preview card */}
-                  <Box sx={{
-                    background: cardType === 'visa'
-                      ? 'linear-gradient(135deg, #1a1f71 0%, #2196f3 100%)'
-                      : 'linear-gradient(135deg, #eb001b 0%, #f79e1b 100%)',
-                    borderRadius: 3,
-                    p: 3,
-                    color: 'white',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    minHeight: 180,
-                    '&::before': {
-                      content: '""',
-                      position: 'absolute',
-                      top: -30, right: -30,
-                      width: 150, height: 150,
-                      borderRadius: '50%',
-                      backgroundColor: 'rgba(255,255,255,0.08)',
-                    },
-                  }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)', letterSpacing: 2 }}>
-                        {cardType === 'visa' ? 'VISA' : 'MASTERCARD'}
-                      </Typography>
-                      {cardType === 'mastercard' && (
-                        <Box sx={{ display: 'flex' }}>
-                          <Box sx={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: '#eb001b', opacity: 0.9 }} />
-                          <Box sx={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: '#f79e1b', opacity: 0.9, ml: -1.5 }} />
-                        </Box>
-                      )}
-                    </Box>
-                    <Typography variant="h5" fontWeight="bold" sx={{ mt: 2, letterSpacing: 3, fontFamily: 'monospace' }}>
-                      {cardForm.cardNumber || '•••• •••• •••• ••••'}
-                    </Typography>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-                      <Box>
-                        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)', display: 'block' }}>Titular</Typography>
-                        <Typography variant="body2" fontWeight="bold">
-                          {cardForm.cardName || 'NUME PRENUME'}
-                        </Typography>
-                      </Box>
-                      <Box>
-                        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)', display: 'block' }}>Expiră</Typography>
-                        <Typography variant="body2" fontWeight="bold">
-                          {cardForm.expiry || 'MM/YY'}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
+                  {/* Card Preview component can stay here */}
 
-                  {/* Campuri card */}
                   <TextField
                     label="Număr card *"
                     name="cardNumber"
@@ -529,7 +387,6 @@ const Checkout = () => {
                     🔒 Datele cardului sunt protejate prin criptare SSL 256-bit. Aceasta este o simulare.
                   </Typography>
 
-                  {/* Butoane */}
                   <Box sx={{ display: 'flex', gap: 2 }}>
                     <Button
                       variant="outlined"
@@ -562,7 +419,6 @@ const Checkout = () => {
               </Box>
             )}
 
-            {/* STEP 2 — Confirmare */}
             {step === 2 && (
               <Box sx={{
                 backgroundColor: '#ffffff',
@@ -576,14 +432,9 @@ const Checkout = () => {
                 gap: 2.5,
               }}>
                 <Box sx={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: '50%',
-                  backgroundColor: '#34c75922',
-                  border: '2px solid #34c75944',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  width: 80, height: 80, borderRadius: '50%',
+                  backgroundColor: '#34c75922', border: '2px solid #34c75944',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                   <CheckCircleIcon sx={{ fontSize: 48, color: '#34c759' }} />
                 </Box>
@@ -601,28 +452,15 @@ const Checkout = () => {
                   backgroundColor: '#f9f9fb',
                   border: '1px solid #e5e5ea',
                   borderRadius: 2,
-                  p: 2.5,
-                  width: '100%',
-                  textAlign: 'left',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 1,
+                  p: 2.5, width: '100%', textAlign: 'left',
+                  display: 'flex', flexDirection: 'column', gap: 1,
                 }}>
                   <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#1c1c1e', mb: 0.5 }}>
                     Ce urmează:
                   </Typography>
-                  {deliveryMethod === 'delivery' ? (
-                    <>
-                      <Typography variant="body2" sx={{ color: '#6b6b6b' }}>📦 Vânzătorul va confirma și expedia produsul</Typography>
-                      <Typography variant="body2" sx={{ color: '#6b6b6b' }}>🚚 Livrare estimată în 2-3 zile lucrătoare la {address.city}</Typography>
-                      <Typography variant="body2" sx={{ color: '#6b6b6b' }}>✅ Confirmă primirea pentru a elibera banii</Typography>
-                    </>
-                  ) : (
-                    <>
-                      <Typography variant="body2" sx={{ color: '#6b6b6b' }}>📍 Contactează vânzătorul pentru a stabili locul și ora ridicării</Typography>
-                      <Typography variant="body2" sx={{ color: '#6b6b6b' }}>✅ Confirmă ridicarea pentru a elibera banii din escrow</Typography>
-                    </>
-                  )}
+                  <Typography variant="body2" sx={{ color: '#6b6b6b' }}>📦 Vânzătorul va confirma și expedia produsul</Typography>
+                  <Typography variant="body2" sx={{ color: '#6b6b6b' }}>🚚 Livrare estimată în 2-3 zile lucrătoare la {address.city}</Typography>
+                  <Typography variant="body2" sx={{ color: '#6b6b6b' }}>✅ Confirmă primirea pentru a elibera banii</Typography>
                 </Box>
 
                 <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
@@ -630,12 +468,7 @@ const Checkout = () => {
                     variant="outlined"
                     fullWidth
                     onClick={() => navigate('/profile/transactions')}
-                    sx={{
-                      color: '#5856d6',
-                      borderColor: '#5856d644',
-                      textTransform: 'none',
-                      '&:hover': { backgroundColor: '#5856d611' },
-                    }}
+                    sx={{ color: '#5856d6', borderColor: '#5856d644', textTransform: 'none' }}
                   >
                     Vezi tranzacțiile
                   </Button>
@@ -643,12 +476,7 @@ const Checkout = () => {
                     variant="contained"
                     fullWidth
                     onClick={() => navigate('/browse')}
-                    sx={{
-                      backgroundColor: '#5856d6',
-                      textTransform: 'none',
-                      fontWeight: 'bold',
-                      '&:hover': { backgroundColor: '#4745c0' },
-                    }}
+                    sx={{ backgroundColor: '#5856d6', textTransform: 'none', fontWeight: 'bold' }}
                   >
                     Continuă cumpărăturile
                   </Button>
@@ -657,13 +485,7 @@ const Checkout = () => {
             )}
           </Box>
 
-          {/* ── DREAPTA: Sumar comandă ── */}
-          <Box sx={{
-            width: 320,
-            flexShrink: 0,
-            position: 'sticky',
-            top: 80,
-          }}>
+          <Box sx={{ width: 320, flexShrink: 0, position: 'sticky', top: 80 }}>
             <Box sx={{
               backgroundColor: '#ffffff',
               border: '1px solid #e5e5ea',
@@ -677,12 +499,7 @@ const Checkout = () => {
                 Sumar comandă
               </Typography>
 
-              <Box sx={{
-                backgroundColor: '#f9f9fb',
-                border: '1px solid #e5e5ea',
-                borderRadius: 2,
-                p: 2,
-              }}>
+              <Box sx={{ backgroundColor: '#f9f9fb', border: '1px solid #e5e5ea', borderRadius: 2, p: 2 }}>
                 <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#1c1c1e' }} noWrap>
                   {transaction?.listing?.title || 'Produs'}
                 </Typography>
@@ -691,7 +508,7 @@ const Checkout = () => {
                 </Typography>
               </Box>
 
-              <Divider sx={{ borderColor: '#e5e5ea' }} />
+              <Divider />
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -701,14 +518,14 @@ const Checkout = () => {
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="body2" sx={{ color: '#6b6b6b' }}>Livrare</Typography>
-                  <Typography variant="body2" sx={{ color: deliveryMethod === 'pickup' ? '#34c759' : '#1c1c1e', fontWeight: 'bold' }}>
-                    {deliveryMethod === 'pickup' ? 'Gratuit' : `${DELIVERY_FEE} RON`}
+                  <Typography variant="body2" sx={{ color: '#6b6b6b' }}>Livrare curier</Typography>
+                  <Typography variant="body2" sx={{ color: '#1c1c1e', fontWeight: 'bold' }}>
+                    {DELIVERY_FEE} RON
                   </Typography>
                 </Box>
               </Box>
 
-              <Divider sx={{ borderColor: '#e5e5ea' }} />
+              <Divider />
 
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#1c1c1e' }}>Total</Typography>
@@ -717,15 +534,7 @@ const Checkout = () => {
                 </Typography>
               </Box>
 
-              <Box sx={{
-                backgroundColor: '#34c75911',
-                border: '1px solid #34c75933',
-                borderRadius: 2,
-                p: 1.5,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-              }}>
+              <Box sx={{ backgroundColor: '#34c75911', border: '1px solid #34c75933', borderRadius: 2, p: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
                 <LockIcon sx={{ fontSize: 16, color: '#34c759' }} />
                 <Typography variant="caption" sx={{ color: '#34c759', fontWeight: 'bold' }}>
                   Plată protejată prin escrow ReSpec

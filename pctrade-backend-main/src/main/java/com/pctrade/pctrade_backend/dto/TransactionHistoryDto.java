@@ -12,4 +12,5 @@ public class TransactionHistoryDto {
     private BigDecimal price;      // Prețul plătit
     private String status;         // Ex: PENDING, COMPLETED, CANCELLED
     private String sellerName;     // De la cine a cumpărat
+    private boolean listingAvailable;
 }

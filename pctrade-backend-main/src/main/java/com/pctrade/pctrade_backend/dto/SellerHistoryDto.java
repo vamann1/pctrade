@@ -12,4 +12,5 @@ public class SellerHistoryDto {
     private BigDecimal price;
     private String status;
     private String buyerName; // Diferența e aici: vânzătorul vrea să știe cine e clientul!
+    private boolean listingAvailable;
 }

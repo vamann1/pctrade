@@ -48,197 +48,80 @@ Platformă de tip marketplace pentru cumpărarea și vânzarea de componente PC 
 
 
 
-\### Pași
+\ Pași rulare
 
-
-
-\*\*1. Clonează repository-ul:\*\*
-
-```bash
+1. Pregatire proiect
 
 git clone <url-repo>
-
 cd pctrade
 
-```
-
-
-
-\*\*2. Creează fișierul `.env`:\*\*
-
-```bash
+2. Configurare mediu
+Creează fișierul .env în rădăcina proiectului (lângă docker-compose-dev.yml):
 
 cp .env.example .env
 
-```
-
-
-
 Deschide `.env` și completează:
 
-```env
-
-POSTGRES\_DB=pctrade
-
-POSTGRES\_USER=pctrade\_user
-
-POSTGRES\_PASSWORD=pctrade\_pass
-
-MINIO\_ROOT\_USER=minioadmin
-
-MINIO\_ROOT\_PASSWORD=minioadmin
-
-GROQ\_API\_KEY=gsk\_xxxxxxxxxxxxxxxxxxxx
-
-GROQ\_MODEL=llama-3.3-70b-versatile
-
-```
-
-
-
-\*\*3. Pornește aplicația:\*\*
-
-```bash
-
-docker compose up --build
-
-```
-
-
-
-Prima pornire durează 3-5 minute (descărcare imagini + build).
-
-
-
-\*\*4. Configurează MinIO (o singură dată):\*\*
-
-\- Deschide \[http://localhost:9001](http://localhost:9001)
-
-\- Login: `minioadmin` / `minioadmin`
-
-\- Mergi la \*\*Buckets → Create Bucket\*\*
-
-\- Nume bucket: `pctrade-images`
-
-\- Click \*\*Create Bucket\*\*
-
-
-
-\*\*5. Accesează aplicația:\*\*
-
-
-
-| Serviciu | URL |
-
-|----------|-----|
-
-| Frontend | \[http://localhost:3000](http://localhost:3000) |
-
-| Backend API | \[http://localhost:8080/api](http://localhost:8080/api) |
-
-| MinIO Console | \[http://localhost:9001](http://localhost:9001) |
-
-
-
-\### Oprire
-
-```bash
-
-docker compose down
-
-```
-
-
-
-\### Oprire și ștergere date
-
-```bash
-
-docker compose down -v
-
-```
-
-
-
-\---
-
-
-
-\## Rulare locală (development)
-
-
-
-\### Pre-requisite
-
-\- Java 21
-
-\- Node.js 20+
-
-\- Docker Desktop (pentru DB, MinIO, Redis)
-
-\- IntelliJ IDEA
-
-
-
-\### Pași
-
-
-
-\*\*1. Pornește infrastructura:\*\*
-
-```bash
-
+POSTGRES_DB=pctrade
+POSTGRES_USER=pctrade_user
+POSTGRES_PASSWORD=pctrade_pass
+MINIO_ROOT_USER=minioadmin
+MINIO_ROOT_PASSWORD=minioadmin
+GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxx
+GROQ_MODEL=llama-3.3-70b-versatile
+
+3. Build & Start
+docker compose -f docker-compose-dev.yml up -d --build
+
+!Prima oara poate dura ~5 minute pentru descărcarea imaginilor și compilarea Maven
+
+4. Configurează MinIO (o singură dată):
+Deschide [http://localhost:9001](http://localhost:9001)
+Login: minioadmin / minioadmin
+Mergi la - Buckets → Create Bucket
+Nume bucket: pctrade-images
+Click: Create Bucket
+!Foarte important: Setează Access Policy pe Public pentru acest bucket (pentru ca imaginile să fie vizibile în frontend).
+
+OPRIRE:
+docker compose -f docker-compose-dev.yml down
+
+RULARE ULTERIOARA:
 docker compose -f docker-compose-dev.yml up -d
 
-```
 
+Rulare locală (Development Mode):
 
+1. Pornește doar infrastructura (Baza de date, Redis, MinIO):
+# Oprește containerele de app dacă rulau anterior
+docker compose -f docker-compose-dev.yml stop backend frontend
 
-\*\*2. Configurează MinIO:\*\*
+# Pornește doar serviciile suport
+docker compose -f docker-compose-dev.yml up -d db redis minio
 
-\- Deschide \[http://localhost:9001](http://localhost:9001)
+2. Pornește Backend-ul (Spring Boot):
 
-\- Creează bucket `pctrade-images` dacă nu există
+Deschide folderul pctrade-backend-main în IntelliJ.
 
+Verifică pom.xml să aibă versiunea de Lombok configurată în annotationProcessorPaths.
 
+În application.properties, asigură-te că URL-ul bazei de date este localhost:5432 (când rulezi din IDE, te conectezi la localhost, nu la numele serviciului db).
 
-\*\*3. Pornește Backend:\*\*
+Click dreapta pe PctradeBackendApplication -> Run.
 
-\- Deschide folderul `pctrade-backend-main` în IntelliJ
-
-\- Asigură-te că în `application.properties` ai `spring.profiles.active=dev`
-
-\- Adaugă în `application-dev.yml` Groq API key-ul tău
-
-\- Click ▶️ pe `PctradeBackendApplication`
-
-\- Așteaptă mesajul `Tomcat started on port 8080`
-
-
-
-\*\*4. Pornește Frontend:\*\*
-
-```bash
-
+3. Pornește Frontend-ul (React/Vite):
 cd pctrade-frontend
-
 npm install
-
 npm run dev
-
-```
-
-
-
-\*\*5. Accesează aplicația:\*\*
-
-\- \[http://localhost:3000](http://localhost:3000)
-
 
 
 \---
 
-
+Serviciu	URL Local (Docker)	URL Dev (Manual)
+Frontend	http://localhost:3000	http://localhost:5173
+Backend API	http://localhost:8080/api	http://localhost:8080/api
+MinIO Console	http://localhost:9001	http://localhost:9001
+PostgreSQL	localhost:5432	localhost:5432
 
 \## Structura proiectului
 
@@ -433,4 +316,3 @@ Proiect dezvoltat în cadrul stagiului de practică universitară METAMINDS.
 
 
 > 🗄️ \*\*Date persistente:\*\* Datele sunt păstrate în volume Docker. Folosiți `docker compose down -v` pentru a șterge toate datele.
-

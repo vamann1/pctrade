@@ -1,6 +1,5 @@
 import { Box, Container, Typography, Divider } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import ComputerIcon from '@mui/icons-material/Computer';
+import { useNavigate, Link as RouterLink } from 'react-router-dom'; // Am adăugat RouterLink
 
 const CATEGORIES = [
   'CPU', 'GPU', 'RAM', 'SSD', 'HDD',
@@ -43,13 +42,18 @@ const Footer = () => {
           mb: 5,
         }}>
 
-          {/* Coloana 1 — Brand */}
+          {/* Coloana 1 — Brand (MODIFICATĂ) */}
           <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <ComputerIcon sx={{ color: '#5856d6', fontSize: 26 }} />
-              <Typography variant="h6" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
-                Re<span style={{ color: '#5856d6' }}>Spec</span>
-              </Typography>
+            <Box 
+              component={RouterLink} 
+              to="/" 
+              sx={{ display: 'inline-flex', mb: 2, textDecoration: 'none' }}
+            >
+              <img 
+                src="/RESPEC_gradient.svg" 
+                alt="ReSpec Logo" 
+                style={{ height: 45 }} // Înălțime ajustată pentru footer
+              />
             </Box>
             <Typography variant="body2" sx={{ color: '#6b6b6b', lineHeight: 1.8, maxWidth: 260 }}>
               Marketplace-ul tău de încredere pentru componente PC second-hand. Tranzacții sigure, prețuri corecte.
