@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getListingById, getListingImages, deleteListing } from '../api/listings';
+import { getSellerReviews } from '../api/reviews';
 import { useAuth } from '../context/AuthContext';
 import {
   Box, Container, Typography, Button, Chip,
@@ -11,8 +12,13 @@ import ComputerIcon from '@mui/icons-material/Computer';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import BuildIcon from '@mui/icons-material/Build';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import StarIcon from '@mui/icons-material/Star';
 import mockListings from '../data/mockListings.json';
-import { createTransaction } from '../api/transactions';
+import { createTransaction, checkActiveTransaction } from '../api/transactions';
+import FavoriteButton from '../components/FavoriteButton';
+import { getSimilarListings } from '../api/ai';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+
 
 const categoryColors = {
   CPU: '#f44336',
@@ -62,10 +68,13 @@ const ListingDetail = () => {
   const [activeImage, setActiveImage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const [reviews, setReviews] = useState([]);
   const [buyLoading, setBuyLoading] = useState(false);
   const [buySuccess, setBuySuccess] = useState(false);
   const [buyError, setBuyError] = useState(null);
+  const [hasActiveTransaction, setHasActiveTransaction] = useState(false);
+  const [similarListings, setSimilarListings] = useState([]);
+  const [similarLoading, setSimilarLoading] = useState(false);
 
   useEffect(() => {
     const fetchListing = async () => {
@@ -78,6 +87,12 @@ const ListingDetail = () => {
           setImages(imgs);
         } catch {
           setImages([]);
+        }
+        try {
+          const reviewsData = await getSellerReviews(data.seller?.id);
+          setReviews(reviewsData);
+        } catch {
+          setReviews([]);
         }
       } catch (err) {
         if (err.response?.status === 404) {
@@ -94,6 +109,65 @@ const ListingDetail = () => {
     };
     fetchListing();
   }, [id]);
+
+useEffect(() => {
+  const checkTransaction = async () => {
+    if (!user || !listing) return;
+    // Calculam seller ID direct aici, fara a depinde de isOwner
+    const sellerId = listing.seller?.id || listing.seller?._id;
+    if (!sellerId) return;
+    if (String(user?.id) === String(sellerId) || String(user?._id) === String(sellerId)) return;
+    try {
+      const buyerId = user?.id || user?._id;
+      const listingId = listing?.id || listing?._id;
+      const active = await checkActiveTransaction(buyerId, listingId);
+      setHasActiveTransaction(active);
+    } catch {
+      // ignoram eroarea
+    }
+  };
+  checkTransaction();
+}, [user, listing]);
+
+useEffect(() => {
+  const fetchSimilar = async () => {
+    if (!listing) return;
+    setSimilarLoading(true);
+    try {
+      const data = await getSimilarListings(
+        listing.title,
+        listing.category,
+        listing.brand,
+        listing.model,
+        listing.price,
+        listing.id || listing._id
+      );
+
+      // Parsam JSON-ul returnat de AI
+      const parsed = JSON.parse(data.message);
+      const suggestions = parsed.suggestions || [];
+
+      // Fetch detalii pentru fiecare listing sugerat
+      const detailedListings = await Promise.all(
+        suggestions.map(async (s) => {
+          try {
+            const listingData = await getListingById(s.id);
+            return { ...listingData, reason: s.reason };
+          } catch {
+            return null;
+          }
+        })
+      );
+
+      setSimilarListings(detailedListings.filter(Boolean));
+    } catch {
+      setSimilarListings([]);
+    } finally {
+      setSimilarLoading(false);
+    }
+  };
+  fetchSimilar();
+}, [listing]);
 
   if (loading) return (
     <Box sx={{ backgroundColor: '#f9f9fb', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -115,7 +189,6 @@ const ListingDetail = () => {
     ? new Date(listing.createdAt).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' })
     : null;
 
-  
   const handleBuyNow = async () => {
     setBuyError(null);
     setBuyLoading(true);
@@ -124,12 +197,29 @@ const ListingDetail = () => {
       const listingId = listing?.id || listing?._id;
       await createTransaction(buyerId, listingId);
       setBuySuccess(true);
+      setHasActiveTransaction(true);
     } catch (err) {
       setBuyError(err.response?.data?.message || 'Eroare la plasarea comenzii. Încearcă din nou.');
     } finally {
       setBuyLoading(false);
     }
   };
+
+  const handleBuyNowAndCheckout = async () => {
+  setBuyError(null);
+  setBuyLoading(true);
+  try {
+    const buyerId = user?.id || user?._id;
+    const listingId = listing?.id || listing?._id;
+    const created = await createTransaction(buyerId, listingId);
+    setHasActiveTransaction(true);
+    navigate(`/checkout/${created.id}`);
+  } catch (err) {
+    setBuyError(err.response?.data?.message || 'Eroare la plasarea comenzii.');
+  } finally {
+    setBuyLoading(false);
+  }
+};
 
 
   return (
@@ -154,7 +244,6 @@ const ListingDetail = () => {
             position: 'sticky',
             top: 80,
           }}>
-            {/* Imaginea principala */}
             <Box sx={{
               backgroundColor: '#ffffff',
               border: '1px solid #e5e5ea',
@@ -182,7 +271,6 @@ const ListingDetail = () => {
               )}
             </Box>
 
-            {/* Miniaturi */}
             {images.length > 1 && (
               <Box sx={{ display: 'flex', gap: 1 }}>
                 {images.map((img, index) => (
@@ -239,6 +327,16 @@ const ListingDetail = () => {
             <Typography variant="h4" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
               {listing.title}
             </Typography>
+
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1 }}>
+              <Typography variant="h4" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
+                {listing.title}
+              </Typography>
+              <FavoriteButton
+                listingId={listing?.id || listing?._id}
+                size="medium"
+              />
+            </Box>
 
             {/* Pret */}
             <Box sx={{
@@ -312,15 +410,21 @@ const ListingDetail = () => {
             <Divider sx={{ borderColor: '#e5e5ea' }} />
 
             {/* Info vanzator */}
-            <Box sx={{
-              backgroundColor: '#f9f9fb',
-              border: '1px solid #e5e5ea',
-              borderRadius: 2,
-              p: 2,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 2,
-            }}>
+            <Box
+              sx={{
+                backgroundColor: '#f9f9fb',
+                border: '1px solid #e5e5ea',
+                borderRadius: 2,
+                p: 2,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                '&:hover': { borderColor: '#5856d633', backgroundColor: '#f2f2f7' },
+              }}
+              onClick={() => navigate(`/user/${listing.seller?.id || listing.seller?._id}`)}
+            >
               <Avatar sx={{ bgcolor: '#5856d6', width: 44, height: 44, fontWeight: 'bold' }}>
                 {listing.seller?.username?.[0]?.toUpperCase()}
               </Avatar>
@@ -338,6 +442,41 @@ const ListingDetail = () => {
                 </Typography>
               )}
             </Box>
+
+            {/* Recenzii vanzator */}
+            {reviews.length > 0 && (
+              <Box>
+                <Typography variant="caption" sx={{ color: '#6b6b6b', textTransform: 'uppercase', letterSpacing: 1, mb: 1.5, display: 'block' }}>
+                  Recenzii vânzător ({reviews.length})
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  {reviews.slice(0, 3).map((review, index) => (
+                    <Box key={index} sx={{
+                      backgroundColor: '#f9f9fb',
+                      border: '1px solid #e5e5ea',
+                      borderRadius: 2,
+                      p: 2,
+                    }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                        <Typography variant="caption" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
+                          @{review.reviewerName}
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 0.3 }}>
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <StarIcon key={star} sx={{ fontSize: 14, color: star <= review.rating ? '#ff9800' : '#e5e5ea' }} />
+                          ))}
+                        </Box>
+                      </Box>
+                      {review.comment && (
+                        <Typography variant="caption" sx={{ color: '#6b6b6b' }}>
+                          {review.comment}
+                        </Typography>
+                      )}
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            )}
 
             {/* Butoane actiuni */}
             {!user ? (
@@ -361,62 +500,79 @@ const ListingDetail = () => {
                 </Typography>
               </Box>
             ) : isOwner ? (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                  <Alert
-                    severity="info"
-                    sx={{ backgroundColor: '#5856d611', color: '#5856d6', border: '1px solid #5856d633' }}
-                  >
-                    Aceasta este oferta ta.
-                  </Alert>
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Button
-                      variant="outlined"
-                      fullWidth
-                      onClick={() => navigate(`/listing/${listing._id || listing.id}/edit`)}
-                      sx={{
-                        color: '#5856d6',
-                        borderColor: '#5856d644',
-                        textTransform: 'none',
-                        fontWeight: 'bold',
-                        py: 1.2,
-                        '&:hover': { backgroundColor: '#5856d608', borderColor: '#5856d6' },
-                      }}
-                    >
-                      Editează anunțul
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      fullWidth
-                      onClick={async () => {
-                        if (!window.confirm('Ești sigur că vrei să ștergi acest anunț?')) return;
-                        try {
-                          await deleteListing(listing._id || listing.id);
-                          navigate('/profile/listings');
-                        } catch (err) {
-                          console.error('Eroare la ștergere:', err);
-                        }
-                      }}
-                      sx={{
-                        color: '#ff3b30',
-                        borderColor: '#ff3b3033',
-                        textTransform: 'none',
-                        fontWeight: 'bold',
-                        py: 1.2,
-                        '&:hover': { backgroundColor: '#ff3b3011', borderColor: '#ff3b30' },
-                      }}
-                    >
-                      Șterge anunțul
-                    </Button>
-                  </Box>
-                </Box>
-              ) : (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                {/* Buton Cumpara acum */}
+                <Alert
+                  severity="info"
+                  sx={{ backgroundColor: '#5856d611', color: '#5856d6', border: '1px solid #5856d633' }}
+                >
+                  Aceasta este oferta ta.
+                </Alert>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    onClick={() => navigate(`/listing/${listing._id || listing.id}/edit`)}
+                    sx={{
+                      color: '#5856d6',
+                      borderColor: '#5856d644',
+                      textTransform: 'none',
+                      fontWeight: 'bold',
+                      py: 1.2,
+                      '&:hover': { backgroundColor: '#5856d608', borderColor: '#5856d6' },
+                    }}
+                  >
+                    Editează anunțul
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    onClick={async () => {
+                      if (!window.confirm('Ești sigur că vrei să ștergi acest anunț?')) return;
+                      try {
+                        await deleteListing(listing._id || listing.id);
+                        navigate('/profile/listings');
+                      } catch (err) {
+                        console.error('Eroare la ștergere:', err);
+                      }
+                    }}
+                    sx={{
+                      color: '#ff3b30',
+                      borderColor: '#ff3b3033',
+                      textTransform: 'none',
+                      fontWeight: 'bold',
+                      py: 1.2,
+                      '&:hover': { backgroundColor: '#ff3b3011', borderColor: '#ff3b30' },
+                    }}
+                  >
+                    Șterge anunțul
+                  </Button>
+                </Box>
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  onClick={handleBuyNow}
+                  disabled={buyLoading || hasActiveTransaction}
+                  sx={{
+                    color: '#5856d6',
+                    borderColor: '#5856d644',
+                    textTransform: 'none',
+                    fontWeight: 'bold',
+                    py: 1.5,
+                    fontSize: 16,
+                    '&:hover': { backgroundColor: '#5856d608', borderColor: '#5856d6' },
+                  }}
+                >
+                  {hasActiveTransaction ? 'Adăugat în coș ✓' : '🛒 Adaugă în coș'}
+                </Button>
+
                 <Button
                   variant="contained"
                   fullWidth
-                  onClick={handleBuyNow}
-                  disabled={buyLoading || buySuccess}
+                  onClick={handleBuyNowAndCheckout}
+                  disabled={buyLoading || hasActiveTransaction}
                   sx={{
                     backgroundColor: '#34c759',
                     textTransform: 'none',
@@ -426,16 +582,12 @@ const ListingDetail = () => {
                     '&:hover': { backgroundColor: '#2db34a' },
                   }}
                 >
-                  {buyLoading ? (
-                    <CircularProgress size={22} sx={{ color: 'white' }} />
-                  ) : buySuccess ? (
-                    'Comandă plasată cu succes!'
-                  ) : (
-                    `Cumpără acum — ${listing.price} RON`
-                  )}
+                  {buyLoading
+                    ? <CircularProgress size={22} sx={{ color: 'white' }} />
+                    : `⚡ Cumpără acum — ${listing.price} RON`
+                  }
                 </Button>
 
-                {/* Buton Contacteaza vanzatorul */}
                 <Button
                   variant="outlined"
                   fullWidth
@@ -461,6 +613,113 @@ const ListingDetail = () => {
 
           </Box>
         </Box>
+
+        {/* Sectiune AI Similar */}
+        {(similarLoading || similarListings.length > 0) && (
+          <Box sx={{ mt: 4 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <AutoAwesomeIcon sx={{ color: '#5856d6', fontSize: 20 }} />
+              <Typography variant="h6" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
+                Produse similare sugerate de AI
+              </Typography>
+              <Box sx={{
+                backgroundColor: '#5856d611',
+                border: '1px solid #5856d633',
+                borderRadius: 10,
+                px: 1,
+                py: 0.2,
+              }}>
+                <Typography variant="caption" sx={{ color: '#5856d6', fontWeight: 'bold', fontSize: 10 }}>
+                  BETA
+                </Typography>
+              </Box>
+            </Box>
+
+            {similarLoading ? (
+              <Box sx={{
+                backgroundColor: '#ffffff',
+                border: '1px solid #e5e5ea',
+                borderRadius: 3,
+                p: 3,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+              }}>
+                <CircularProgress size={20} sx={{ color: '#5856d6' }} />
+                <Typography variant="body2" sx={{ color: '#6b6b6b' }}>
+                  AI-ul analizează produse similare...
+                </Typography>
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                {similarListings.map((similar) => {
+                  const chipColor = categoryColors[similar.category] || '#9e9e9e';
+                  return (
+                    <Box
+                      key={similar.id}
+                      onClick={() => navigate(`/listing/${similar.id}`)}
+                      sx={{
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e5e5ea',
+                        borderRadius: 2,
+                        p: 2,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        '&:hover': {
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                          borderColor: '#5856d633',
+                          transform: 'translateX(4px)',
+                        },
+                      }}
+                    >
+                      {/* Icon categorie */}
+                      <Box sx={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: 2,
+                        backgroundColor: chipColor + '18',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}>
+                        <ComputerIcon sx={{ color: chipColor, fontSize: 24 }} />
+                      </Box>
+
+                      {/* Info */}
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#1c1c1e' }} noWrap>
+                          {similar.title}
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.3 }}>
+                          <AutoAwesomeIcon sx={{ fontSize: 12, color: '#5856d6' }} />
+                          <Typography variant="caption" sx={{ color: '#5856d6', fontStyle: 'italic' }}>
+                            {similar.reason}
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      {/* Pret */}
+                      <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
+                        <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#5856d6' }}>
+                          {similar.price} RON
+                        </Typography>
+                        <Chip
+                          label={similar.condition}
+                          size="small"
+                          sx={{ backgroundColor: '#f2f2f7', color: '#6b6b6b', fontSize: 10 }}
+                        />
+                      </Box>
+                    </Box>
+                  );
+                })}
+              </Box>
+            )}
+          </Box>
+        )}
       </Container>
     </Box>
   );

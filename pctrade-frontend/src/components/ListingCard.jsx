@@ -6,6 +6,7 @@ import {
 } from '@mui/material';
 import ComputerIcon from '@mui/icons-material/Computer';
 import { getListingImages } from '../api/listings';
+import FavoriteButton from './FavoriteButton';
 
 const MINIO_URL = 'http://localhost:9000/pctrade-images';
 
@@ -77,6 +78,7 @@ const ListingCard = ({ listing }) => {
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
+        position: 'relative',
       }}>
         {imageUrl ? (
           <img
@@ -87,6 +89,13 @@ const ListingCard = ({ listing }) => {
         ) : (
           <ComputerIcon sx={{ fontSize: 64, color: '#c7c7cc' }} />
         )}
+        {/* Buton favorite in colt dreapta sus */}
+          <Box sx={{ position: 'absolute', top: 6, right: 6 }}>
+            <FavoriteButton
+              listingId={listing._id || listing.id}
+              size="small"
+            />
+          </Box>
       </Box>
 
       {/* Detalii */}

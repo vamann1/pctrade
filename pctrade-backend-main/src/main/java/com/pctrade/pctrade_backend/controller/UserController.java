@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 import java.util.List;
 
@@ -73,5 +75,35 @@ public class UserController {
         response.put("email", user.getEmail());
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/public")
+    public ResponseEntity<?> getPublicProfile(@PathVariable Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Userul nu a fost găsit!"));
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", user.getId());
+        response.put("username", user.getUsername());
+        response.put("createdAt", user.getCreatedAt());
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    @Transactional
+    public ResponseEntity<?> deleteAccount(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Userul nu a fost găsit!"));
+
+        // Verificam parola curenta
+        if (!passwordEncoder.matches(body.get("password"), user.getPassword())) {
+            return ResponseEntity.status(400).body(Map.of("message", "Parolă incorectă!"));
+        }
+
+        userRepository.delete(user);
+        return ResponseEntity.ok(Map.of("message", "Cont șters cu succes!"));
     }
 }

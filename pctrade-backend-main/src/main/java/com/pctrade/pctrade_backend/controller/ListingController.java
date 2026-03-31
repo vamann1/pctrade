@@ -16,6 +16,10 @@ import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import java.util.Map;
+import com.pctrade.pctrade_backend.model.Favorite;
+import com.pctrade.pctrade_backend.repository.FavoriteRepository;
+import com.pctrade.pctrade_backend.service.NotificationService;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/listings")
@@ -25,6 +29,8 @@ public class ListingController {
     private final ListingRepository listingRepository;
     private final MinioService minioService;
     private final ListingImageRepository listingImageRepository;
+    private final FavoriteRepository favoriteRepository;
+    private final NotificationService notificationService;
 
     @GetMapping
     public List<Listing> getFilteredListings(
@@ -116,6 +122,26 @@ public class ListingController {
             listing.setPrice(new java.math.BigDecimal(updates.get("price").toString()));
         }
 
+        if (updates.containsKey("price")) {
+            java.math.BigDecimal newPrice = new java.math.BigDecimal(updates.get("price").toString());
+            java.math.BigDecimal oldPrice = listing.getPrice();
+            listing.setPrice(newPrice);
+
+            // Notifica utilizatorii care au la favorite
+            if (!newPrice.equals(oldPrice)) {
+                List<Favorite> favorites = favoriteRepository.findByListingId(id);
+                // Adauga in FavoriteRepository: List<Favorite> findByListingId(Long listingId);
+                for (Favorite fav : favorites) {
+                    notificationService.createNotification(
+                            fav.getUser(),
+                            "price_offer",
+                            "Prețul pentru \"" + listing.getTitle() + "\" s-a modificat: " + oldPrice + " RON → " + newPrice + " RON",
+                            "/listing/" + listing.getId()
+                    );
+                }
+            }
+        }
+
         return ResponseEntity.ok(listingRepository.save(listing));
     }
 
@@ -123,6 +149,18 @@ public class ListingController {
     public ResponseEntity<?> deleteListing(@PathVariable Long id) {
         Listing listing = listingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Anunțul nu a fost găsit!"));
+
+        // Notifica utilizatorii care au la favorite
+        List<Favorite> favorites = favoriteRepository.findByListingId(id);
+        for (Favorite fav : favorites) {
+            notificationService.createNotification(
+                    fav.getUser(),
+                    "offer_rejected",
+                    "Anunțul \"" + listing.getTitle() + "\" a fost șters de vânzător și nu mai este disponibil.",
+                    "/browse"
+            );
+        }
+
         listingRepository.delete(listing);
         return ResponseEntity.ok("Anunț șters cu succes!");
     }

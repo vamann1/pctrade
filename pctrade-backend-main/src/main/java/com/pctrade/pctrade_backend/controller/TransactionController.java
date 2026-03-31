@@ -7,6 +7,8 @@ import com.pctrade.pctrade_backend.repository.*;
 import com.pctrade.pctrade_backend.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import java.util.List;
 
 import java.util.List;
 
@@ -71,7 +73,54 @@ public class TransactionController {
             listingRepository.save(listing);
         }
 
-        return transactionRepository.save(transaction);
+        Transaction savedTransaction = transactionRepository.save(transaction);
+
+        switch (status) {
+            case PAID:
+                notificationService.createNotification(
+                        transaction.getListing().getSeller(),
+                        "purchase",
+                        transaction.getBuyer().getUsername() + " a plătit pentru " + transaction.getListing().getTitle() + ". Confirmă că vei trimite produsul!",
+                        "/profile/transactions"
+                );
+                break;
+            case CONFIRMED_BY_SELLER:
+                notificationService.createNotification(
+                        transaction.getBuyer(),
+                        "new_message",
+                        transaction.getListing().getSeller().getUsername() + " a confirmat că va trimite " + transaction.getListing().getTitle() + ". Așteaptă coletul!",
+                        "/profile/transactions"
+                );
+                break;
+            case SHIPPED:
+                notificationService.createNotification(
+                        transaction.getBuyer(),
+                        "new_message",
+                        transaction.getListing().getSeller().getUsername() + " a expediat " + transaction.getListing().getTitle() + ". Confirmă primirea când ajunge!",
+                        "/profile/transactions"
+                );
+                break;
+            case COMPLETED:
+                notificationService.createNotification(
+                        transaction.getListing().getSeller(),
+                        "offer_accepted",
+                        transaction.getBuyer().getUsername() + " a confirmat primirea pentru " + transaction.getListing().getTitle() + ". Banii au fost eliberați!",
+                        "/profile/transactions"
+                );
+                break;
+            case CANCELLED:
+                notificationService.createNotification(
+                        transaction.getListing().getSeller(),
+                        "offer_rejected",
+                        "Tranzacția pentru " + transaction.getListing().getTitle() + " a fost anulată de cumpărător.",
+                        "/profile/transactions"
+                );
+                break;
+            default:
+                break;
+        }
+
+        return savedTransaction;
     }
 
     @GetMapping("/buyer/{buyerId}")
@@ -102,5 +151,24 @@ public class TransactionController {
                     .buyerName(transaction.getBuyer().getUsername())
                     .build();
         }).toList();
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<Boolean> hasActiveTransaction(
+            @RequestParam Long buyerId,
+            @RequestParam Long listingId) {
+        boolean exists = transactionRepository
+                .existsByBuyerIdAndListingIdAndStatusNotIn(
+                        buyerId, listingId,
+                        List.of(TransactionStatus.CANCELLED, TransactionStatus.COMPLETED)
+                );
+        return ResponseEntity.ok(exists);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getTransactionById(@PathVariable Long id) {
+        Transaction transaction = transactionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tranzacția nu a fost găsită!"));
+        return ResponseEntity.ok(transaction);
     }
 }

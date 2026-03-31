@@ -138,7 +138,7 @@ const Home = () => {
           }}>
             <VerifiedIcon sx={{ fontSize: 14, color: '#5856d6' }} />
             <Typography variant="caption" sx={{ color: '#5856d6', fontWeight: 'bold', letterSpacing: 1 }}>
-              VERIFICAT · SIGUR · CU SUPORT AI
+              PLATĂ PROTEJATĂ PRIN ESCROW
             </Typography>
           </Box>
 

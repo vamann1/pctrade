@@ -91,6 +91,15 @@ const Login = () => {
               sx={{ backgroundColor: '#f9f9fb', borderRadius: 1 }}
             />
 
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <RouterLink
+                to="/forgot-password"
+                style={{ color: '#5856d6', textDecoration: 'none', fontSize: 13 }}
+              >
+                Ai uitat parola?
+              </RouterLink>
+            </Box>
+
             <Button
               type="submit"
               variant="contained"

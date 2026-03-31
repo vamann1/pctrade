@@ -41,3 +41,8 @@ export const respondToOffer = async (messageId, action) => {
   });
   return response.data;
 };
+
+export const getUnreadMessagesCount = async (userId) => {
+  const response = await axiosInstance.get(`/messages/conversations/${userId}`);
+  return response.data.length;
+};

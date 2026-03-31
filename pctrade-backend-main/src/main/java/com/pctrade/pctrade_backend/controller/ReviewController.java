@@ -9,6 +9,7 @@ import com.pctrade.pctrade_backend.repository.ReviewRepository;
 import com.pctrade.pctrade_backend.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
@@ -65,7 +66,15 @@ public class ReviewController {
                 .comment(review.getComment())
                 .reviewerName(review.getReviewer().getUsername())
                 .createdAt(review.getCreatedAt())
+                // Campuri noi:
+                .listingTitle(review.getTransaction().getListing().getTitle())
+                .listingPrice(review.getTransaction().getListing().getPrice())
                 .build()
         ).toList();
+    }
+
+    @GetMapping("/exists/{transactionId}")
+    public ResponseEntity<Boolean> reviewExists(@PathVariable Long transactionId) {
+        return ResponseEntity.ok(reviewRepository.existsByTransactionId(transactionId));
     }
 }

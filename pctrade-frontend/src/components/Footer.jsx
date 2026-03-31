@@ -154,9 +154,6 @@ const Footer = () => {
           <Typography variant="caption" sx={{ color: '#aeaeb2' }}>
             © {new Date().getFullYear()} ReSpec. Toate drepturile rezervate.
           </Typography>
-          <Typography variant="caption" sx={{ color: '#aeaeb2' }}>
-            Făcut cu ❤️ în România
-          </Typography>
         </Box>
 
       </Container>

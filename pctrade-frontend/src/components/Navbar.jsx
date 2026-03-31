@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link as RouterLink, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -6,13 +6,14 @@ import {
   Box, Menu, MenuItem, Avatar, Divider,
   InputBase, Chip, Badge
 } from '@mui/material';
-import ComputerIcon from '@mui/icons-material/Computer';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import SearchIcon from '@mui/icons-material/Search';
 import ChatIcon from '@mui/icons-material/Chat';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import CircleIcon from '@mui/icons-material/Circle';
 import { useNotifications } from '../context/NotificationsContext';
+import { getUnreadMessagesCount } from '../api/messages';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
 const notifIcon = (type) => {
   switch (type) {
@@ -57,6 +58,8 @@ const Navbar = () => {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [notifAnchorEl, setNotifAnchorEl] = useState(null);
 
+  const [messageCount, setMessageCount] = useState(0);
+
   const handleLogout = () => {
     logout();
     handleMenuClose();
@@ -71,6 +74,23 @@ const Navbar = () => {
       navigate('/browse');
     }
   };
+
+  useEffect(() => {
+  if (!user) {
+    setMessageCount(0);
+    return;
+  }
+  const fetchMessageCount = async () => {
+    try {
+      const userId = user?.id || user?._id;
+      const count = await getUnreadMessagesCount(userId);
+      setMessageCount(count);
+    } catch {
+      setMessageCount(0);
+    }
+  };
+  fetchMessageCount();
+}, [user]);
 
   return (
     <AppBar position="sticky" sx={{ backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
@@ -226,7 +246,7 @@ const Navbar = () => {
 
             {/* Buton mesaje */}
             <IconButton onClick={() => navigate('/messages')}>
-              <Badge badgeContent={2} sx={{
+              <Badge badgeContent={messageCount} sx={{
                 '& .MuiBadge-badge': { backgroundColor: '#5856d6', color: 'white', fontSize: 10 }
               }}>
                 <ChatIcon sx={{ color: '#1c1c1e', fontSize: 22 }} />
@@ -249,6 +269,21 @@ const Navbar = () => {
               Adaugă anunț
             </Button>
 
+            <Button
+              component={RouterLink}
+              to="/ai-assistant"
+              variant="outlined"
+              startIcon={<AutoAwesomeIcon />}
+              sx={{
+                color: '#5856d6',
+                borderColor: '#5856d644',
+                textTransform: 'none',
+                '&:hover': { backgroundColor: '#5856d611', borderColor: '#5856d6' },
+              }}
+            >
+              AI Assistant
+            </Button>
+
             <IconButton onClick={handleMenuOpen}>
               <Avatar sx={{ bgcolor: '#00bcd4', width: 35, height: 35, fontSize: 16 }}>
                 {user.username?.[0]?.toUpperCase()}
@@ -259,42 +294,67 @@ const Navbar = () => {
               anchorEl={anchorEl}
               open={Boolean(anchorEl)}
               onClose={handleMenuClose}
-              PaperProps={{ 
-              sx: { 
-                backgroundColor: '#ffffff', 
-                color: '#1c1c1e', 
-                minWidth: 180,
-                border: '1px solid #e5e5ea',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.10)',
-              } 
-            }}
+              PaperProps={{
+                sx: {
+                  backgroundColor: '#ffffff',
+                  color: '#1c1c1e',
+                  minWidth: 200,
+                  border: '1px solid #e5e5ea',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.10)',
+                }
+              }}
             >
-            <MenuItem disabled sx={{ opacity: 0.6, fontSize: 13, color: '#6b6b6b' }}>
-              {user.username}
-            </MenuItem>
-            <Divider sx={{ borderColor: '#e5e5ea' }} />
-            <MenuItem
-              component={RouterLink}
-              to="/profile"
-              onClick={handleMenuClose}
-              sx={{ color: '#1c1c1e', '&:hover': { backgroundColor: '#f2f2f7' } }}
-            >
-              Profilul meu
-            </MenuItem>
-            <MenuItem
-              component={RouterLink}
-              to="/profile/listings"
-              onClick={handleMenuClose}
-              sx={{ color: '#1c1c1e', '&:hover': { backgroundColor: '#f2f2f7' } }}
-            >
-              Anunțurile mele
-            </MenuItem>
-            <MenuItem
-              onClick={handleLogout}
-              sx={{ color: '#ff3b30', '&:hover': { backgroundColor: '#ff3b3011' } }}
-            >
-              Deconectare
-            </MenuItem>
+              <MenuItem disabled sx={{ opacity: 0.6, fontSize: 13, color: '#6b6b6b' }}>
+                {user.username}
+              </MenuItem>
+              <Divider sx={{ borderColor: '#e5e5ea' }} />
+              <MenuItem
+                component={RouterLink}
+                to="/profile"
+                onClick={handleMenuClose}
+                sx={{ color: '#1c1c1e', '&:hover': { backgroundColor: '#f2f2f7' } }}
+              >
+                Profilul meu
+              </MenuItem>
+              <MenuItem
+                component={RouterLink}
+                to="/profile/listings"
+                onClick={handleMenuClose}
+                sx={{ color: '#1c1c1e', '&:hover': { backgroundColor: '#f2f2f7' } }}
+              >
+                Anunțurile mele
+              </MenuItem>
+              <MenuItem
+                component={RouterLink}
+                to="/profile/edit"
+                onClick={handleMenuClose}
+                sx={{ color: '#1c1c1e', '&:hover': { backgroundColor: '#f2f2f7' } }}
+              >
+                Editează profilul
+              </MenuItem>
+              <MenuItem
+                component={RouterLink}
+                to="/profile/transactions"
+                onClick={handleMenuClose}
+                sx={{ color: '#1c1c1e', '&:hover': { backgroundColor: '#f2f2f7' } }}
+              >
+                Istoric tranzacții
+              </MenuItem>
+              <MenuItem
+                component={RouterLink}
+                to="/profile/reviews"
+                onClick={handleMenuClose}
+                sx={{ color: '#1c1c1e', '&:hover': { backgroundColor: '#f2f2f7' } }}
+              >
+                Recenziile mele
+              </MenuItem>
+              <Divider sx={{ borderColor: '#e5e5ea' }} />
+              <MenuItem
+                onClick={handleLogout}
+                sx={{ color: '#ff3b30', '&:hover': { backgroundColor: '#ff3b3011' } }}
+              >
+                Deconectare
+              </MenuItem>
             </Menu>
           </>
       ) : (

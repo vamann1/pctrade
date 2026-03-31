@@ -1,9 +1,11 @@
 package com.pctrade.pctrade_backend.model;
 
 public enum TransactionStatus {
-    PENDING,    // Tranzacția abia a fost inițiată
-    PAID,       // Cumpărătorul a confirmat plata
-    SHIPPED,    // Vânzătorul a trimis produsul
-    COMPLETED,  // Cumpărătorul a confirmat primirea
-    CANCELLED   // Tranzacția a fost anulată
+    PENDING,            // Cumpărătorul a făcut request
+    PAID,               // Cumpărătorul a plătit - bani blocați în escrow
+    CONFIRMED_BY_SELLER, // Vânzătorul confirmă că va trimite
+    SHIPPED,            // Vânzătorul a trimis coletul
+    COMPLETED,          // Cumpărătorul a confirmat primirea - bani eliberați
+    CANCELLED,          // Tranzacție anulată
+    DISPUTED            // Dispută deschisă
 }

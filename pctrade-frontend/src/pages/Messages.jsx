@@ -11,7 +11,7 @@ import ComputerIcon from '@mui/icons-material/Computer';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
-import { createTransaction } from '../api/transactions';
+import { createTransaction, checkActiveTransaction } from '../api/transactions';
 
 const POLL_INTERVAL = 30000;
 
@@ -40,6 +40,8 @@ const Messages = () => {
   const [sending, setSending] = useState(false);
   const [showOfferInput, setShowOfferInput] = useState(false);
   const [offerPrice, setOfferPrice] = useState('');
+  const [paySuccess, setPaySuccess] = useState(null); // listingId platit
+const [payError, setPayError] = useState(null);
 
   const messagesEndRef = useRef(null);
   const pollRef = useRef(null);
@@ -77,13 +79,17 @@ const Messages = () => {
     fetchConversations();
   }, [fetchConversations]);
 
-  const handlePayOffer = async (listingId, offeredPrice) => {
+const handlePayOffer = async (listingId, offeredPrice) => {
   try {
-    await createTransaction(userId, listingId);
-    alert(`Comandă plasată cu succes pentru ${offeredPrice} RON!`);
+    const active = await checkActiveTransaction(userId, listingId);
+    if (active) {
+      setPayError('Ai deja o comandă activă pentru acest produs. Vezi istoricul tranzacțiilor.');
+      return;
+    }
+    const created = await createTransaction(userId, listingId);
+    navigate(`/checkout/${created.id}`);
   } catch (err) {
-    console.error('Eroare la plasarea comenzii:', err);
-    alert('Eroare la plasarea comenzii. Încearcă din nou.');
+    setPayError('Eroare la plasarea comenzii. Încearcă din nou.');
   }
 };
 
@@ -175,8 +181,13 @@ const Messages = () => {
   const handleRespondOffer = async (messageId, action) => {
     try {
       const updated = await respondToOffer(messageId, action);
+      // Actualizam local imediat, indiferent de ce returneaza backend-ul
       setMessages((prev) =>
-        prev.map((m) => m.id === messageId ? updated : m)
+        prev.map((m) =>
+          m.id === messageId || m.id === updated.id
+            ? { ...m, offerStatus: action === 'accept' ? 'accepted' : 'rejected' }
+            : m
+        )
       );
     } catch (err) {
       console.error('Eroare la raspuns oferta:', err);
@@ -279,14 +290,30 @@ const Messages = () => {
                 gap: 2,
                 backgroundColor: '#ffffff',
               }}>
-                <Avatar sx={{ bgcolor: '#5856d6', width: 36, height: 36, fontSize: 14 }}>
-                  {activeConv.otherUser?.username?.[0]?.toUpperCase()}
-                </Avatar>
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
-                    @{activeConv.otherUser?.username}
-                  </Typography>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
+                    cursor: 'pointer',
+                    '&:hover': { opacity: 0.8 },
+                    transition: 'opacity 0.15s',
+                  }}
+                  onClick={() => navigate(`/user/${activeConv.otherUserId}`)}
+                >
+                  <Avatar sx={{ bgcolor: '#5856d6', width: 36, height: 36, fontSize: 14 }}>
+                    {activeConv.otherUser?.username?.[0]?.toUpperCase()}
+                  </Avatar>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
+                      @{activeConv.otherUser?.username}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#6b6b6b' }}>
+                      Vezi profilul
+                    </Typography>
+                  </Box>
                 </Box>
+                <Box sx={{ flex: 1 }} />
 
                 <Box
                   onClick={() => navigate(`/listing/${activeConv.listingId}`)}
@@ -357,21 +384,32 @@ const Messages = () => {
                             </Typography>
 
                             {msg.offerStatus === 'accepted' && (
-                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                <Chip label="Acceptată" size="small" sx={{ backgroundColor: '#34c75922', color: '#34c759', width: 'fit-content', border: '1px solid #34c75944' }} />
-                                {/* Buton plateste doar pentru cumparator */}
+                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.8 }}>
+                                <Chip
+                                  label="Acceptată"
+                                  size="small"
+                                  sx={{ backgroundColor: '#34c75922', color: '#34c759', width: 'fit-content', border: '1px solid #34c75944' }}
+                                />
                                 {msg.senderId === userId && (
-                                  <Button
-                                    size="small"
-                                    variant="contained"
-                                    onClick={() => handlePayOffer(activeConv.listingId, msg.offeredPrice)}
-                                    sx={{ backgroundColor: '#34c759', textTransform: 'none', '&:hover': { backgroundColor: '#2db34a' } }}
-                                  >
-                                    Plătește {msg.offeredPrice} RON
-                                  </Button>
+                                  <>
+                                    {payError && (
+                                      <Typography variant="caption" sx={{ color: '#ff3b30' }}>
+                                        {payError}
+                                      </Typography>
+                                    )}
+                                    <Button
+                                      size="small"
+                                      variant="contained"
+                                      onClick={() => handlePayOffer(activeConv.listingId, msg.offeredPrice)}
+                                      sx={{ backgroundColor: '#34c759', textTransform: 'none', '&:hover': { backgroundColor: '#2db34a' } }}
+                                    >
+                                      ⚡ Cumpără acum — {msg.offeredPrice} RON
+                                    </Button>
+                                  </>
                                 )}
                               </Box>
                             )}
+                            
                             {msg.offerStatus === 'rejected' && (
                               <Chip label="Respinsă" size="small" sx={{ backgroundColor: '#ff3b3022', color: '#ff3b30', width: 'fit-content', border: '1px solid #ff3b3044' }} />
                             )}

@@ -70,6 +70,7 @@ public class AuthController {
         userData.put("email", user.getEmail());
         response.put("user", userData);
         response.put("token", "temp-token-" + user.getId());
+        userData.put("createdAt", user.getCreatedAt());
 
         return ResponseEntity.ok(response);
     }

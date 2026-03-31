@@ -13,6 +13,7 @@ public class Listing {
     private Long id;
 
     private String title;
+    @Column(length = 5000)
     private String description;
     private BigDecimal price;
     private String category; // Ex: GPU, CPU, RAM

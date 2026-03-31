@@ -16,3 +16,10 @@ export const getTransactionsBySeller = async (sellerId) => {
   const response = await axiosInstance.get(`/transactions/seller/${sellerId}`);
   return response.data;
 };
+
+export const checkActiveTransaction = async (buyerId, listingId) => {
+  const response = await axiosInstance.get('/transactions/active', {
+    params: { buyerId, listingId }
+  });
+  return response.data;
+};

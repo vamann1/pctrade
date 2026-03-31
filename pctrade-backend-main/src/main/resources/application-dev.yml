@@ -21,5 +21,5 @@ stripe:
   webhook-secret: whsec_... # vine de la Stripe CLI
 
 groq:
-  api-key: gsq_... # din Groq console
-  model: llama3-70b-8192
+  api-key: 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
+  model: llama-3.3-70b-versatile

@@ -10,6 +10,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // Metodă utilă pentru login: căutăm user-ul după nume
     Optional<User> findByUsername(String username);
 
+    Optional<User> findByEmail(String email);
+
     // Verificăm dacă un email este deja înregistrat
     Boolean existsByEmail(String email);
 }

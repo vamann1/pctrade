@@ -16,7 +16,13 @@ import ProfileListings from './pages/ProfileListings';
 import EditProfile from './pages/EditProfile';
 import EditListing from './pages/EditListing';
 import TransactionHistory from './pages/TransactionHistory';
-
+import ProfileReviews from './pages/ProfileReviews';
+import AiAssistant from './pages/AiAssistant';
+import Checkout from './pages/Checkout';
+import ScrollToTop from './components/ScrollToTop';
+import ProfileFavorites from './pages/ProfileFavorites';
+import PublicProfile from './pages/PublicProfile';
+import ForgotPassword from './pages/ForgotPassword';
 
 const theme = createTheme({
   palette: {
@@ -65,6 +71,7 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <BrowserRouter>
+        <ScrollToTop />
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
           <Navbar />
           <Box sx={{ flex: 1 }}>
@@ -81,6 +88,13 @@ function App() {
               <Route path="/profile/edit" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
               <Route path="/listing/:id/edit" element={<ProtectedRoute><EditListing /></ProtectedRoute>} />
               <Route path="/profile/transactions" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
+              <Route path="/profile/reviews" element={<ProtectedRoute><ProfileReviews /></ProtectedRoute>} />
+              <Route path="/ai-assistant" element={<AiAssistant />} />
+              <Route path="/checkout/:transactionId" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+              <Route path="/profile/favorites" element={<ProtectedRoute><ProfileFavorites /></ProtectedRoute>} />
+              <Route path="/user/:id" element={<PublicProfile />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Box>
           <Footer />
