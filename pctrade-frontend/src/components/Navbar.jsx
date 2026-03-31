@@ -102,7 +102,7 @@ const Navbar = () => {
           to="/"
           sx={{ display: 'flex', alignItems: 'center', gap: 1, textDecoration: 'none', flexShrink: 0 }}
         >
-          <img src="/logo1.svg" alt="ReSpec" style={{ height: 64 }} />
+          <img src="/RESPEC_gradient.svg" alt="ReSpec" style={{ height: 48 }} />
         </Box>
 
         {/* Searchbar centrat */}
