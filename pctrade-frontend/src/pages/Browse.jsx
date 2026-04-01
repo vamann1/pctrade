@@ -71,11 +71,16 @@ const Browse = () => {
       prev.includes(cond) ? prev.filter((c) => c !== cond) : [...prev, cond]
     );
 
-  const filtered = listings
+const filtered = listings
     .filter((l) => l.title.toLowerCase().includes(searchFromUrl.toLowerCase()))
     .sort((a, b) => {
       if (sortBy === 'price_asc') return a.price - b.price;
       if (sortBy === 'price_desc') return b.price - a.price;
+      
+      if (sortBy === 'newest') {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      }
+      
       return 0;
     });
 

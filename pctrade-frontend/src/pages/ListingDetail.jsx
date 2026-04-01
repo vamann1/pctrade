@@ -77,36 +77,41 @@ const ListingDetail = () => {
   const [similarLoading, setSimilarLoading] = useState(false);
 
   useEffect(() => {
-    const fetchListing = async () => {
-      try {
-        setLoading(true);
-        const data = await getListingById(id);
-        setListing(data);
-        try {
-          const imgs = await getListingImages(id);
-          setImages(imgs);
-        } catch {
-          setImages([]);
-        }
-        try {
-          const reviewsData = await getSellerReviews(data.seller?.id);
-          setReviews(reviewsData);
-        } catch {
-          setReviews([]);
-        }
-      } catch (err) {
-        if (err.response?.status === 404) {
-          const found = mockListings.find((l) => l._id === id || String(l.id) === id);
-          setListing(found || MOCK_LISTING);
-        } else {
-          console.warn('Backend indisponibil, folosim date mock.');
-          const found = mockListings.find((l) => l._id === id || String(l.id) === id);
-          setListing(found || MOCK_LISTING);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
+const fetchListing = async () => {
+  try {
+    setLoading(true);
+    setError(null); // Resetăm eroarea la început
+    
+    // 1. Încercăm să luăm datele reale
+    const data = await getListingById(id);
+    setListing(data);
+    
+    // Luăm restul datelor doar dacă avem listing-ul real
+    // Folosim Promise.allSettled pentru a nu bloca totul dacă pozele eșuează
+    const [imgsRes, reviewsRes] = await Promise.allSettled([
+      getListingImages(id),
+      getSellerReviews(data.seller?.id || data.seller?._id)
+    ]);
+
+    if (imgsRes.status === 'fulfilled') setImages(imgsRes.value);
+    if (reviewsRes.status === 'fulfilled') setReviews(reviewsRes.value);
+
+  } catch (err) {
+    console.error("Eroare API, trecem pe MOCK:", err);
+    
+    // Căutăm în mock doar dacă API-ul chiar a dat eroare 404 sau e picat
+    const found = mockListings.find((l) => String(l._id) === String(id) || String(l.id) === String(id));
+    
+    if (found) {
+      setListing(found);
+    } else {
+      // Dacă nici în mock nu e, punem un obiect default dar FĂRĂ să dublăm
+      setListing(MOCK_LISTING);
+    }
+  } finally {
+    setLoading(false);
+  }
+};
     fetchListing();
   }, [id]);
 
@@ -324,9 +329,6 @@ useEffect(() => {
             </Box>
 
             {/* Titlu */}
-            <Typography variant="h4" fontWeight="bold" sx={{ color: '#1c1c1e' }}>
-              {listing.title}
-            </Typography>
 
             <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1 }}>
               <Typography variant="h4" fontWeight="bold" sx={{ color: '#1c1c1e' }}>

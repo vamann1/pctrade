@@ -42,61 +42,85 @@ Platformă de tip marketplace pentru cumpărarea și vânzarea de componente PC 
 
 \### Pre-requisite
 
-\- \[Docker Desktop](https://www.docker.com/products/docker-desktop/) instalat și pornit
+\- Docker Desktop (de la https://www.docker.com/products/docker-desktop/) instalat și pornit
 
-\- Cont \[Groq](https://console.groq.com) pentru AI (gratuit)
+\- Cont Groq (de la https://console.groq.com) pentru AI (gratuit)
 
 
 
 \ Pași rulare
+
+Pre-requisite:
+Docker Desktop (Pornit și funcțional)
+Git
 
 1. Pregatire proiect
 
 git clone <url-repo>
 cd pctrade
 
-2. Configurare mediu
-Creează fișierul .env în rădăcina proiectului (lângă docker-compose-dev.yml):
-
+2. Creează / Deschide fișierul de configurare mediu
+(Copiază exemplul și completează cheile lipsă, ex: GROQ_API_KEY)
 cp .env.example .env
 
-Deschide `.env` și completează:
+Deschide .env și completează:
 
 POSTGRES_DB=pctrade
 POSTGRES_USER=pctrade_user
 POSTGRES_PASSWORD=pctrade_pass
 MINIO_ROOT_USER=minioadmin
 MINIO_ROOT_PASSWORD=minioadmin
-GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxx
+GROQ_API_KEY= gsk_xxxxxxxxxxxxxxxxxxxx - inlocuieste cu cheia de la console.groq.com
 GROQ_MODEL=llama-3.3-70b-versatile
 
 3. Build & Start
+PRIMUL BOOT:
 docker compose -f docker-compose-dev.yml up -d --build
 
 !Prima oara poate dura ~5 minute pentru descărcarea imaginilor și compilarea Maven
 
+RULARE ULTERIOARA:
+docker compose -f docker-compose-dev.yml up -d
+
+Rulare cu fortarea crearii continutului nou:
+docker compose -f docker-compose-dev.yml up -d --build --force-recreate frontend
+
 4. Configurează MinIO (o singură dată):
-Deschide [http://localhost:9001](http://localhost:9001)
+Deschide http://localhost:9001
 Login: minioadmin / minioadmin
 Mergi la - Buckets → Create Bucket
 Nume bucket: pctrade-images
 Click: Create Bucket
 !Foarte important: Setează Access Policy pe Public pentru acest bucket (pentru ca imaginile să fie vizibile în frontend).
 
-OPRIRE:
+Pentru a face bucket-ul public:
+	Cinfigureaza clientul sa vada serverul local:
+		docker exec pctrade-minio mc alias set myminio http://localhost:9000 minioadmin minioadmin
+	Creăm bucket-ul (dacă cumva nu l-ai creat deja manual):
+		docker exec pctrade-minio mc mb myminio/pctrade-images
+	Setăm permisiunile de public pentru tot bucket-ul:
+		docker exec pctrade-minio mc anonymous set public myminio/pctrade-images
+
+5. Oprire
+
+Oprește containerele
+docker compose -f docker-compose-dev.yml stop
+
+Șterge containerele (păstrează datele)
 docker compose -f docker-compose-dev.yml down
 
-RULARE ULTERIOARA:
-docker compose -f docker-compose-dev.yml up -d
+Resetare totală (șterge și baza de date/imaginile)
+docker compose -f docker-compose-dev.yml down -v
+
 
 
 Rulare locală (Development Mode):
 
 1. Pornește doar infrastructura (Baza de date, Redis, MinIO):
-# Oprește containerele de app dacă rulau anterior
+Oprește containerele de app dacă rulau anterior
 docker compose -f docker-compose-dev.yml stop backend frontend
 
-# Pornește doar serviciile suport
+Pornește doar serviciile suport
 docker compose -f docker-compose-dev.yml up -d db redis minio
 
 2. Pornește Backend-ul (Spring Boot):
@@ -113,6 +137,8 @@ Click dreapta pe PctradeBackendApplication -> Run.
 cd pctrade-frontend
 npm install
 npm run dev
+
+Acceseaza localhost:3000
 
 
 \---
@@ -189,9 +215,9 @@ pctrade/
 
 PENDING → PAID → CONFIRMED\_BY\_SELLER → SHIPPED  →  COMPLETED
 
-&#x20;                         ↓                             ↓
+                                                         ↓
 
-&#x20;                  Gata de ridicare  → Ridicat →  Banii eliberați
+                  				   Banii eliberați
 
 ```
 
@@ -212,8 +238,6 @@ PENDING → PAID → CONFIRMED\_BY\_SELLER → SHIPPED  →  COMPLETED
 | `COMPLETED` | Cumpărătorul confirmă primirea — bani eliberați |
 
 | `CANCELLED` | Tranzacție anulată |
-
-| `DISPUTED` | Dispută deschisă |
 
 
 
@@ -311,7 +335,7 @@ Proiect dezvoltat în cadrul stagiului de practică universitară METAMINDS.
 
 
 
-> 💡 \*\*AI Demo:\*\* Codul de resetare a parolei este returnat direct în response (fără email) pentru simplificarea demo-ului.
+> 💡 \*\*Demo:\*\* Fiind un produs demo unele funcionalități sunt mult simplificate si nu ar trebuii reproduse exact, ex: codul de resetare a parolei este returnat direct în response (fără email) pentru ușurința de lucru cu demo-ul.
 
 
 
